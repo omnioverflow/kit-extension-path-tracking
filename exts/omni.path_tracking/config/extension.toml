@@ -1,0 +1,14 @@
+[package]
+version = "1.0.0"
+title = "Simple Vehicle Motion Planning"
+description="The simplest vehivle motion planning."
+readme  = "docs/README.md"
+repository = ""
+icon = "data/icon.png"
+keywords = ["kit", "example"]
+
+[dependencies]
+"omni.kit.uiapp" = {}
+
+[[python.module]]
+name = "omni.path_tracking"
