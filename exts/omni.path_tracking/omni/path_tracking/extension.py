@@ -619,20 +619,14 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
         # await omni.kit.app.get_app().next_update_async()
 
     def _on_click_load_ground_plane(self):
-        print("[lifecycle] Load ground plane from the existing USD file")
-        usd_context = omni.usd.get_context()
-        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
-        ground_plane_prim_path = "/GroundPlane"
-        ground_plane = usd_context.get_stage().GetPrimAtPath(ground_plane_prim_path)
-        if (ground_plane and ground_plane is not None):
-            return
-        ground_plane_usd_path = f"{ext_path}/data/ground_plane.usd"
-        res = omni.kit.commands.execute(
-            "CreateReferenceCommand",
-            path_to=ground_plane_prim_path,
-            asset_path=ground_plane_usd_path,
-            usd_context=usd_context,
-        )
+        omni.kit.commands.execute('AddGroundPlaneCommand',
+            stage=Usd.Stage.Open(rootLayer=Sdf.Find('anon:0000015F4A3068A0:World0.usd'),
+            sessionLayer=Sdf.Find('anon:0000015F4A306990:World0-session.usda')),
+            planePath='/GroundPlane',
+            axis='Y',
+            size=2500.0,
+            position=Gf.Vec3f(0.0, 0.0, 0.0),
+            color=Gf.Vec3f(0.5, 0.5, 0.5))
 
     def _on_click_load_basic_curve(self):
         print("[lifecycle] Load basic curve from the existing USD file")
