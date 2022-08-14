@@ -1,6 +1,93 @@
 import omni.ui as ui
 import math
 
+DEFAULT_BTN_HEIGHT = 22
+COLLAPSABLE_FRAME_HEIGHT = 32
+LINE_HEIGHT = 32
+
+class ExtensionUI():
+    
+    def __init__(self, controller):
+        self._controller = controller
+
+    def build_ui(self):
+        self._viewport_ui = None
+        # self._viewport_ui = ViewportUI()
+        # self._viewport_ui.build_viewport()
+        
+        self._window = ui.Window("Path Tracking", width=300, height=300)
+        with self._window.frame:
+            with ui.VStack():
+                self._settings_frame = ui.CollapsableFrame("SETTINGS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
+                with self._settings_frame:
+                    with ui.VStack():
+                        width = 64
+                        height = 16
+                        with ui.HStack(width=width, height=height):
+                            ui.Label("Enable path planning: ")
+                            self._path_planning_checkbox = ui.CheckBox()
+                            # self._path_planning_checkbox.model.set_value(self._create_renderer)
+                            # self._path_planning_checkbox.model.add_value_changed_fn(
+                            #        lambda box: toggle_renderer(box)
+                            # )
+                            ui.Spacer(height=20)
+                        with ui.HStack(width=width, height=height):
+                            ui.Label("Enable debug: ")
+                            self._enable_debug_checkbox = ui.CheckBox()
+                            self._enable_debug_checkbox.model.add_value_changed_fn(
+                                self._controller._changed_enable_debug
+                            )
+                            ui.Spacer(height=20)
+                        with ui.HStack(width=width, height=height):
+                            ui.Label("Hide paths: ")
+                            self._hide_paths_checkbox = ui.CheckBox()
+                            self._hide_paths_checkbox.model.add_value_changed_fn(
+                                self._controller._changed_hide_paths
+                            )
+                            ui.Spacer(height=20)
+                        with ui.HStack(width=width, height=height):
+                            ui.Label("Draw track: ")
+                            self._draw_track_checkbox = ui.CheckBox()
+                            self._draw_track_checkbox.model.add_value_changed_fn(
+                                self._controller._changed_draw_track
+                            )
+                            self._draw_track_checkbox.model.set_value(False)
+                            ui.Spacer(height=20)
+                ui.Line(height=LINE_HEIGHT)
+
+                self._controls_frame = ui.CollapsableFrame("CONTROLS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
+                with self._controls_frame:
+                    with ui.VStack():
+                        ui.Button("Start Scenario", 
+                            clicked_fn=self._controller._on_click_start_scenario, height=DEFAULT_BTN_HEIGHT)
+                        ui.Button("Load ground plane", 
+                            clicked_fn=self._controller._on_click_load_ground_plane, height=DEFAULT_BTN_HEIGHT)
+                        ui.Button("Load forklift", 
+                            clicked_fn=self._controller._on_click_load_forklift, height=DEFAULT_BTN_HEIGHT)
+                        ui.Button("Load BasisCurve", 
+                            clicked_fn=self._controller._on_click_load_basis_curve, height=DEFAULT_BTN_HEIGHT)
+                        ui.Button("Track selected",
+                            clicked_fn=self._controller._on_click_track_selected, height=DEFAULT_BTN_HEIGHT)
+                        ui.Button("Recompute trajectories",
+                            clicked_fn=self._controller._on_click_recompute_trajectories, height=DEFAULT_BTN_HEIGHT)
+
+                ui.Line(height=LINE_HEIGHT)
+                self._atachments_frame = ui.CollapsableFrame("VEHICLE-TO-CURVE ATTACHMENTS", 
+                    collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
+                with self._atachments_frame:
+                    with ui.VStack():
+                        with ui.HStack(width=width, height=height):
+                            ui.Label("(1) Select WizardVehicle Xform and corresponding BasisCurve;\n(2) Click 'Attach Selected'",
+                                width=32)
+                        ui.Button("Attach Selected", height=DEFAULT_BTN_HEIGHT)
+                        ui.Button("Clear All Attachments")
+
+        # viewport = ui.Workspace.get_window("Viewport")
+        # self._window.dock_in(viewport, ui.DockPosition.BOTTOM)
+        self._window.deferred_dock_in("Property")
+        # dock_in_window is deprecated unfortunatelly
+        # self._window.dock_in_window("Viewport", ui.DockPosition.RIGHT, ratio=0.1)
+
 class ViewportUI:
     def __init__(self):
         self._vehicle_velocity_label = None

@@ -10,6 +10,7 @@ from .debug_renderer import *
 from .stepper import *
 from .path_tracking import *
 from .ui import *
+from .utils import Utils
 
 from enum import IntEnum
 import asyncio, random, re
@@ -398,10 +399,10 @@ class SimpleScenario(Scenario):
 class Trajectory():
     def __init__(self, prim_path):
         stage = omni.usd.get_context().get_stage()
-        basic_curves = UsdGeom.BasisCurves.Get(stage, prim_path)
-        if (basic_curves and basic_curves is not None):
+        basis_curves = UsdGeom.BasisCurves.Get(stage, prim_path)
+        if (basis_curves and basis_curves is not None):
             curve_prim = stage.GetPrimAtPath(prim_path)
-            self._points = basic_curves.GetPointsAttr().Get()
+            self._points = basis_curves.GetPointsAttr().Get()
             translation_vec = curve_prim.GetAttribute("xformOp:translate").Get()
             rotate = curve_prim.GetAttribute("xformOp:rotateXYZ").Get()
     
@@ -455,7 +456,6 @@ class Trajectory():
                 0xFF000000, 5,
             )
 
-
 # ==============================================================================
 # TrajectoryScenario
 # ==============================================================================
@@ -505,15 +505,16 @@ class TrajectoryScenario(SimpleScenario):
         self._stopped = False
 
 # ==============================================================================
-# VehicleMotionPlanningExtension
+# PathTrackingExtension
 # ==============================================================================
-class VehicleMotionPlanningExtension(omni.ext.IExt):
+class PathTrackingExtension(omni.ext.IExt):
     def on_startup(self, ext_id):
         print("[lifecycle] **** Extension startup")
 
         self._ext_id = ext_id
         self.setup()
-        self.build_ui()
+        self._extension_ui = ExtensionUI(self)
+        self._extension_ui.build_ui()
 
         self._vehicle_paths = []
         self._trajectory_paths = []
@@ -528,8 +529,11 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
         self._window = None
         self._scenario_managers = []
         self._scenarios = []
-        self._viewport_ui.teardown()
-        self._viewport_ui = None
+        if hasattr(self, '_viewport_ui') and self._viewport_ui is not None:
+            self._viewport_ui.teardown()
+            self._viewport_ui = None
+        if hasattr(self, '_extension_ui') and self._extension_ui is not None:
+            self._extension_ui = None
 
     def setup(self):
         self.METERS_PER_UNIT = 0.01
@@ -571,7 +575,7 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
         return ((len(self._vehicle_paths) - 1) * 400.0, y, z)
 
     def _on_click_start_scenario(self):
-        print("[lifecycle] Start vehicle scenario")
+        self._prepare_scene()
         
         vehicle_count = len(self._vehicle_paths)
         trajectory_count = len(self._trajectory_paths)
@@ -603,7 +607,7 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
             forklift_prim_path, 
             True
         )
-        forklift_usd_path = f"{ext_path}/data/forklift_v11.usd"
+        forklift_usd_path = f"{ext_path}/data/forklift.usd"
         res, err = omni.kit.commands.execute(
             "CreateReferenceCommand",
             path_to=forklift_prim_path,
@@ -619,35 +623,29 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
         # await omni.kit.app.get_app().next_update_async()
 
     def _on_click_load_ground_plane(self):
-        omni.kit.commands.execute('AddGroundPlaneCommand',
-            stage=Usd.Stage.Open(rootLayer=Sdf.Find('anon:0000015F4A3068A0:World0.usd'),
-            sessionLayer=Sdf.Find('anon:0000015F4A306990:World0-session.usda')),
-            planePath='/GroundPlane',
-            axis='Y',
-            size=2500.0,
-            position=Gf.Vec3f(0.0, 0.0, 0.0),
-            color=Gf.Vec3f(0.5, 0.5, 0.5))
+        stage = omni.usd.get_context().get_stage()
+        path = omni.usd.get_stage_next_free_path(stage, "/GroundPlane", False)
+        Utils.add_ground_plane(stage, path, "Y")
 
-    def _on_click_load_basic_curve(self):
-        print("[lifecycle] Load basic curve from the existing USD file")
+    def _on_click_load_basis_curve(self):
         usd_context = omni.usd.get_context()
         ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
-        basic_curve_prim_path = "/BasisCurves"
-        basic_curve_prim_path = omni.usd.get_stage_next_free_path(
+        basis_curve_prim_path = "/BasisCurves"
+        basis_curve_prim_path = omni.usd.get_stage_next_free_path(
             usd_context.get_stage(),
-            basic_curve_prim_path, 
+            basis_curve_prim_path, 
             True
         )
-        basic_curve_usd_path = f"{ext_path}/data/curve_5.usd"
+        basis_curve_usd_path = f"{ext_path}/data/curve.usd"
         res = omni.kit.commands.execute(
             "CreateReferenceCommand",
-            path_to=basic_curve_prim_path,
-            asset_path=basic_curve_usd_path,
+            path_to=basis_curve_prim_path,
+            asset_path=basis_curve_usd_path,
             usd_context=usd_context,
         )
         if (res):
-            self._trajectory_paths.append(basic_curve_prim_path)
-            curve = usd_context.get_stage().GetPrimAtPath(basic_curve_prim_path)
+            self._trajectory_paths.append(basis_curve_prim_path)
+            curve = usd_context.get_stage().GetPrimAtPath(basis_curve_prim_path)
             curve.GetAttribute("visibility").Set(
                 self._visibility_token(self._hide_paths_checkbox.model.as_bool)
             )
@@ -665,9 +663,9 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
                 scenario = self._scenarios[0]
                 scenario.recompute_trajectory()
                 manager.set_scenario(scenario)
-                
-    def _on_click_compute_obstacles(self):
-        pass
+
+    def _on_click_attach_selected(self):
+        selected_paths = omni.usd.get_context().get_selection().get_selected_prim_paths()
 
     def _on_click_recompute_trajectories(self):
         assert(len(self._scenarios) == len(self._scenario_managers))
@@ -676,15 +674,6 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
             manager = self._scenario_managers[i]
             scenario.recompute_trajectory()
             manager.set_scenario(scenario)
-
-    def _on_click_find_boxes_and_attach_physics(self):
-        stage = omni.usd.get_context().get_stage()
-        curr_prim = stage.GetPrimAtPath("/")
-        for prim in Usd.PrimRange(curr_prim):
-                prim_name = prim.GetName()
-                if prim.IsA(UsdGeom.Xform) or prim.IsA(UsdGeom.Mesh):
-                    if len(re.findall("box", prim_name)) > 0:
-                        utils.setRigidBody(prim, "convexHull", False)
 
     def _changed_enable_debug(self, model):
         flag = model.as_bool
@@ -705,58 +694,3 @@ class VehicleMotionPlanningExtension(omni.ext.IExt):
     def _changed_draw_track(self, model):
         for scenario in self._scenarios:
             scenario.draw_track = model.as_bool
-
-    def build_ui(self):
-        self._viewport_ui = None
-        # self._viewport_ui = ViewportUI()
-        # self._viewport_ui.build_viewport()
-        
-        self._window = ui.Window("Vehicle Path Planner", width=300, height=300)
-        with self._window.frame:
-            with ui.VStack():
-                width = 64
-                height = 16
-                with ui.HStack(width=width, height=height):
-                    ui.Label("Enable path planning: ")
-                    self._path_planning_checkbox = ui.CheckBox()
-                    # self._path_planning_checkbox.model.set_value(self._create_renderer)
-                    # self._path_planning_checkbox.model.add_value_changed_fn(
-                    #        lambda box: toggle_renderer(box)
-                    # )
-                    ui.Spacer(height=20)
-                with ui.HStack(width=width, height=height):
-                    ui.Label("Enable debug: ")
-                    self._enable_debug_checkbox = ui.CheckBox()
-                    self._enable_debug_checkbox.model.add_value_changed_fn(
-                        self._changed_enable_debug
-                    )
-                    ui.Spacer(height=20)
-                with ui.HStack(width=width, height=height):
-                    ui.Label("Hide paths: ")
-                    self._hide_paths_checkbox = ui.CheckBox()
-                    self._hide_paths_checkbox.model.add_value_changed_fn(
-                        self._changed_hide_paths
-                    )
-                    ui.Spacer(height=20)
-                with ui.HStack(width=width, height=height):
-                    ui.Label("Draw track: ")
-                    self._draw_track_checkbox = ui.CheckBox()
-                    self._draw_track_checkbox.model.add_value_changed_fn(
-                        self._changed_draw_track
-                    )
-                    self._draw_track_checkbox.model.set_value(False)
-                    ui.Spacer(height=20)
-
-                ui.Button("Start Scenario", clicked_fn=self._on_click_start_scenario)
-                ui.Button("Load forklift", clicked_fn=self._on_click_load_forklift)
-                ui.Button("Load ground plane", clicked_fn=self._on_click_load_ground_plane)
-                ui.Button("Load basic curve", clicked_fn=self._on_click_load_basic_curve)
-                ui.Button("Track selected", clicked_fn=self._on_click_track_selected)
-                ui.Button("Compute obstacles", clicked_fn=self._on_click_compute_obstacles)
-                ui.Button("Recompute trajectories", clicked_fn=self._on_click_recompute_trajectories)
-                ui.Button("Find boxes and attach physics", clicked_fn=self._on_click_find_boxes_and_attach_physics)
-        # viewport = ui.Workspace.get_window("Viewport")
-        # self._window.dock_in(viewport, ui.DockPosition.BOTTOM)
-        self._window.deferred_dock_in("Property")
-        # dock_in_window is deprecated unfortunatelly
-        # self._window.dock_in_window("Viewport", ui.DockPosition.RIGHT, ratio=0.1)
