@@ -20,23 +20,23 @@ class Trajectory():
             Rx = Gf.Matrix4d().SetRotate(Gf.Rotation(Gf.Vec3d.XAxis(), rotate[0]))
             Ry = Gf.Matrix4d().SetRotate(Gf.Rotation(Gf.Vec3d.YAxis(), rotate[1]))
             Rz = Gf.Matrix4d().SetRotate(Gf.Rotation(Gf.Vec3d.ZAxis(), rotate[2]))
-            print(f"Rx {Rx}")
-            print(f"Ry {Ry}")
-            print(f"Rz {Rz}")
+            carb.log_info(f"Rx {Rx}")
+            carb.log_info(f"Ry {Ry}")
+            carb.log_info(f"Rz {Rz}")
             R = Rx * Ry * Rz
-            print(f"R {R}")
+            carb.log_info(f"R {R}")
             T = Gf.Matrix4d().SetTranslate(translation_vec)
             self._num_points = len(self._points)
             for i in range(self._num_points):
-                print(f"translation_vec {translation_vec}")
-                print(f"translation_vec type {type(translation_vec)}")
-                print(f"before {i}: {self._points[i]}")
+                carb.log_info(f"translation_vec {translation_vec}")
+                carb.log_info(f"translation_vec type {type(translation_vec)}")
+                carb.log_info(f"before {i}: {self._points[i]}")
                 # self._points[i] = self._points[i] * R + Gf.Vec3f(translation_vec)
                 p = Gf.Vec4d(self._points[i][0], self._points[i][1], self._points[i][2], 1.0)
                 p_ = p * R * T
                 self._points[i] = Gf.Vec3f(p_[0], p_[1], p_[2])
                 # self._points[i] = self._points[i] * R * T
-                print(f"after {i}: {self._points[i]}")
+                carb.log_info(f"after {i}: {self._points[i]}")
         else:
             self._points = None
             self._num_points = 0
@@ -91,9 +91,9 @@ class TrajectoryScenario(SimpleScenario):
         if dest_position:
             distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
             if (is_close_to_dest):
-                dest_position = self._trajectory.next_point()
-                distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
+                dest_position = self._trajectory.next_point()                
             if dest_position:
+                    distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
                     self._process(forward, up, dest_position, distance, is_close_to_dest)
             else:
                 self._full_stop()
@@ -102,11 +102,9 @@ class TrajectoryScenario(SimpleScenario):
             self._full_stop()
 
     def on_end(self):
-        print("[TrajectoryScenario] on_end")
         self._trajectory.reset()
 
     def teardown(self):
-        print(f"[TrajectoryScenario] teardown {super}")
         super().teardown()
 
     def recompute_trajectory(self):

@@ -1,11 +1,12 @@
-import math
-import threading
-
+import omni.kit
+import omni.physx
 import omni.usd
 import omni.timeline
-import omni.physx
+
 from omni.physx.bindings._physx import SimulationEvent
-import omni.kit
+
+import math
+import threading
 
 # ==============================================================================
 # Scenario
@@ -19,13 +20,13 @@ class Scenario:
 
     # override in subclass as needed
     def on_start(self):
-        return
+        pass
 
     def on_end(self):
-        return
+        pass
 
     def on_step(self, deltaTime, totalTime):
-        return
+        pass
 
 # ==============================================================================
 # SimStepTracker
@@ -189,7 +190,6 @@ class ScenarioManager:
         del simStepTracker
 
     def run_scenario(self):
-        print(f"[run_scenarion] # active threads: {threading.active_count()}")
         timeline = omni.timeline.get_timeline_interface()
         if (timeline.is_playing()):
             # Request restart and then stop the timeline. 
@@ -204,7 +204,6 @@ class ScenarioManager:
         #     omni.timeline.get_timeline_interface().play()
 
     def run_scenario_force_play(self):
-        print(f"[run_scenarion] # active threads: {threading.active_count()}")
         timeline = omni.timeline.get_timeline_interface()
         if (timeline.is_playing()):
             # Request restart and then stop the timeline. 

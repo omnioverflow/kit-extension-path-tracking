@@ -18,11 +18,8 @@ class Destination():
             stage = omni.usd.get_context().get_stage()
             self._prim = stage.GetPrimAtPath(path)
             
-            # xform = UsdGeom.Xformable(self._prim)
-            # transform = xform.AddTransformOp()
             x = random.uniform(5000.0, 10000.0)
             z = random.uniform(5000.0, 10000.0)
-            # transform.Set(Gf.Matrix4d().SetTranslateOnly(Gf.Vec3d(x, 0.0, z)))
 
             attr_translate = self._prim.CreateAttribute("xformOp:translate", Sdf.ValueTypeNames.Float3, False)
             attr_translate.Set(Gf.Vec3f(x, 0.0, z))
@@ -77,16 +74,6 @@ class SimpleScenario(Scenario):
         self._dest = Destination() if destination else None
         self._debug_render = DebugRenderer()
         self._motion_controller = PurePursuitPathTracker(math.pi / 4)
-        # Emissive materials
-        self._emissive_red_light_path = "/World/forklift/Looks/RedLightsOmniPBR"
-        self._emissive_mtl_path = "/World/forklift/Looks/OrangeLightsOmniPBR"
-        self._emissive_pointer = 0
-        self._emissive_pointer_half = 30
-        self._emissive_pointer_max = self._emissive_pointer_half * 2 - 1
-        self._emissive = np.arange(0.0, 10000.0, 10000.0/self._emissive_pointer_half)
-        self._emissive = np.concatenate((self._emissive, np.repeat([0], self._emissive_pointer_half)))
-        self._emissive_rgb = [1.0, 0.5, 0.0]
-        self._emissive_first_call = True
     
     def on_start(self):
         self._vehicle.accelerate(1.0)
@@ -96,7 +83,7 @@ class SimpleScenario(Scenario):
     
     def _vehicle_is_close_to(self, point):
         if not point:
-            raise Exception("point is None")
+            raise Exception("Point is None")
         curr_vehicle_pos = self._vehicle.curr_position()
         if not curr_vehicle_pos:
             raise Exception("curr_vehicle_pos is None")
@@ -108,7 +95,7 @@ class SimpleScenario(Scenario):
             distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
         curr_vehicle_pos = self._vehicle.curr_position()
 
-        # self._debug_render.update_vehicle(self._vehicle)
+        self._debug_render.update_vehicle(self._vehicle)
         # self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
 
         # Project onto xz
@@ -119,9 +106,9 @@ class SimpleScenario(Scenario):
         velocity = self._vehicle.get_velocity()
         speed = self._vehicle_speed(velocity)
         axle_front = Gf.Vec3f(self._vehicle.axle_position(Axle.FRONT))
-        axle_front[1] = 0.0
+        # axle_front[1] = 0.0
         axle_rear = Gf.Vec3f(self._vehicle.axle_position(Axle.REAR))
-        axle_rear[1] = 0.0
+        # axle_rear[1] = 0.0
 
         self._debug_render.update_path_tracking(axle_front, axle_rear, forward, dest_position)
 
@@ -133,11 +120,12 @@ class SimpleScenario(Scenario):
             curr_vehicle_pos
         )
 
+        # Accelerate/break control heuristic
         if steer_angle < 0:
             self._vehicle.steer_left(abs(steer_angle))
         else:
             self._vehicle.steer_right(steer_angle)
-        if steer_angle > 0.3 and speed > 5.0:
+        if abs(steer_angle) > 0.3 and speed > 5.0:
             self._vehicle.brake(1.0)
             self._vehicle.accelerate(0.0)
         else:

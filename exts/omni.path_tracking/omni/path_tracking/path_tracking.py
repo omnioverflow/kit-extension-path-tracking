@@ -2,25 +2,12 @@
 # Implements pure pursuit path tracking algorithm.
 # 
 # References
+# * Implementation of the Pure Pursuit Path tracking Algorithm,  RC Conlter: https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
 # * https://dingyan89.medium.com/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
 # 
 from pxr import Gf
 import numpy as np
 import math
-
-# /scene/WizardVehicle1/Vehicle/LeftWheel1References/Render 
-# /scene/WizardVehicle1/Vehicle/LeftWheel1References/Wheel_FL
-# 
-# /scene/WizardVehicle1/Vehicle/RightWheel1References/Render
-# /scene/WizardVehicle1/Vehicle/RightWheel1References/Wheel_FR
-# 
-# /scene/WizardVehicle1/Vehicle/LeftWheel2References/Render
-# /scene/WizardVehicle1/Vehicle/LeftWheel2References/WHeel_RL
-# 
-# /scene/WizardVehicle1/Vehicle/RightWheel2References/Render
-# /scene/WizardVehicle1/Vehicle/RightWheel2References/Wheel_RR
-# 
-# 
 
 class PurePursuitPathTracker():
     def __init__(self, max_steer_angle_radians):
@@ -46,5 +33,6 @@ class PurePursuitPathTracker():
         alpha = math.atan2(cross, dot)
 
         steer_angle = math.atan(2.0 * forward_dist * math.sin(alpha) / lookahead_dist)
-        return self._steer_value_from_angle(steer_angle)
-
+        alpha = self._steer_value_from_angle(steer_angle)
+        print("alpha: " + str(alpha))
+        return alpha

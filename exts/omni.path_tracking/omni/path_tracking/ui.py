@@ -30,21 +30,21 @@ class ExtensionUI():
                                 self._controller._changed_enable_debug
                             )
                             ui.Spacer(height=20)
-                        with ui.HStack(width=width, height=height):
-                            ui.Label("Hide paths: ")
-                            self._hide_paths_checkbox = ui.CheckBox()
-                            self._hide_paths_checkbox.model.add_value_changed_fn(
-                                self._controller._changed_hide_paths
-                            )
-                            ui.Spacer(height=20)
-                        with ui.HStack(width=width, height=height):
-                            ui.Label("Draw track: ")
-                            self._draw_track_checkbox = ui.CheckBox()
-                            self._draw_track_checkbox.model.add_value_changed_fn(
-                                self._controller._changed_draw_track
-                            )
-                            self._draw_track_checkbox.model.set_value(False)
-                            ui.Spacer(height=20)
+                        # with ui.HStack(width=width, height=height):
+                        #     ui.Label("Hide paths: ")
+                        #     self._hide_paths_checkbox = ui.CheckBox()
+                        #     self._hide_paths_checkbox.model.add_value_changed_fn(
+                        #         self._controller._changed_hide_paths
+                        #     )
+                        #     ui.Spacer(height=20)
+                        # with ui.HStack(width=width, height=height):
+                        #     ui.Label("Draw track: ")
+                        #     self._draw_track_checkbox = ui.CheckBox()
+                        #     self._draw_track_checkbox.model.add_value_changed_fn(
+                        #         self._controller._changed_draw_track
+                        #     )
+                        #     self._draw_track_checkbox.model.set_value(False)
+                        #     ui.Spacer(height=20)
                 ui.Line(height=LINE_HEIGHT)
 
                 self._controls_frame = ui.CollapsableFrame("CONTROLS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
@@ -57,9 +57,7 @@ class ExtensionUI():
                         ui.Button("Load forklift", 
                             clicked_fn=self._controller._on_click_load_sample_vehicle, height=DEFAULT_BTN_HEIGHT)
                         ui.Button("Load BasisCurve", 
-                            clicked_fn=self._controller._on_click_load_basis_curve, height=DEFAULT_BTN_HEIGHT)
-                        ui.Button("Track selected",
-                            clicked_fn=self._controller._on_click_track_selected, height=DEFAULT_BTN_HEIGHT)                        
+                            clicked_fn=self._controller._on_click_load_basis_curve, height=DEFAULT_BTN_HEIGHT)                        
 
                 ui.Line(height=LINE_HEIGHT)
                 self._atachments_frame = ui.CollapsableFrame("VEHICLE-TO-CURVE ATTACHMENTS", 

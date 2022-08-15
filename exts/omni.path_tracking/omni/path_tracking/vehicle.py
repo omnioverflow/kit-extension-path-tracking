@@ -46,44 +46,11 @@ class Vehicle():
             breakpt = 1
         self._prim.GetAttribute("physxVehicleController:steerLeft").Set(0.0)
         self._prim.GetAttribute("physxVehicleController:steerRight").Set(value)
-    
-    def steer_left_tmp(self, value):
-        left_value = self._prim.GetAttribute("physxVehicleController:steerLeft").Get()
-        right_value = self._prim.GetAttribute("physxVehicleController:steerRight").Get()
-
-        if (right_value > 0.0):
-            if (value < 0.3):
-                right_value = right_value - 2 * self._steer_delta
-            else:
-                right_value = right_value - 5 * self._steer_delta
-            right_value = max(0.0, right_value)
-            self._prim.GetAttribute("physxVehicleController:steerRight").Set(right_value)
-        else:
-            left_value = left_value + self._steer_delta
-            left_value = min(1.0, left_value)
-            self._prim.GetAttribute("physxVehicleController:steerLeft").Set(left_value)
-
-    def steer_right_tmp(self, value):
-        left_value = self._prim.GetAttribute("physxVehicleController:steerLeft").Get()
-        right_value = self._prim.GetAttribute("physxVehicleController:steerRight").Get()
-
-        if (left_value > 0.0):
-            if (value < 0.3):
-                left_value = left_value - 2 * self._steer_delta
-            else:
-                left_value = left_value - 5 * self._steer_delta
-            left_value = max(0.0, left_value)
-            self._prim.GetAttribute("physxVehicleController:steerLeft").Set(left_value)
-        else:
-            right_value = right_value + self._steer_delta
-            right_value = min(1.0, right_value)
-            self._prim.GetAttribute("physxVehicleController:steerRight").Set(right_value)
 
     def accelerate(self, value):
-        if (value < 0.0 or value > 1.0):
-            # FIXME: remove dead code
-            breakpt = 1
-        self._prim.GetAttribute("physxVehicleController:accelerator").Set(value)
+        vehicle_prim = omni.usd.get_context().get_stage().GetPrimAtPath(self._path)
+        vehicle_prim.GetAttribute("physxVehicleController:accelerator").Set(value)
+        # self._prim.GetAttribute("physxVehicleController:accelerator").Set(value)
 
     def brake(self, value):
         self._prim.GetAttribute("physxVehicleController:brake").Set(value)
