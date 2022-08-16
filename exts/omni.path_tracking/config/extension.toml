@@ -1,11 +1,13 @@
 [package]
 version = "1.0.0"
-title = "Simple Vehicle Motion Planning"
-description="The simplest vehivle motion planning."
-readme  = "docs/README.md"
+title = "Vehicle Path Tracking Extension"
+description="Allows omni.physxvehicle to move along a user-defined trajectory via path tracking 'pure pursuit' inspired algorithm."
+readme  = "docs/index.rst"
+changelog="docs/CHANGELOG.md"
 repository = ""
 icon = "data/icon.png"
-keywords = ["kit", "example"]
+preview_image="data/preview.png"
+keywords = ["kit", "omni.physxvehicle", "animation", "path", "tracking", "vehicle"]
 
 [dependencies]
 "omni.kit.uiapp" = {}
