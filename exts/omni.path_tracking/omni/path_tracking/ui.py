@@ -15,7 +15,7 @@ class ExtensionUI():
         # self._viewport_ui = ViewportUI()
         # self._viewport_ui.build_viewport()
         
-        self._window = ui.Window("Path Tracking", width=300, height=300)
+        self._window = ui.Window("Vehicle Path Tracking Extension", width=300, height=300)
         with self._window.frame:
             with ui.VStack():
                 self._settings_frame = ui.CollapsableFrame("SETTINGS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
@@ -29,52 +29,63 @@ class ExtensionUI():
                             self._enable_debug_checkbox.model.add_value_changed_fn(
                                 self._controller._changed_enable_debug
                             )
-                            ui.Spacer(height=20)
-                        # with ui.HStack(width=width, height=height):
-                        #     ui.Label("Hide paths: ")
-                        #     self._hide_paths_checkbox = ui.CheckBox()
-                        #     self._hide_paths_checkbox.model.add_value_changed_fn(
-                        #         self._controller._changed_hide_paths
-                        #     )
-                        #     ui.Spacer(height=20)
-                        # with ui.HStack(width=width, height=height):
-                        #     ui.Label("Draw track: ")
-                        #     self._draw_track_checkbox = ui.CheckBox()
-                        #     self._draw_track_checkbox.model.add_value_changed_fn(
-                        #         self._controller._changed_draw_track
-                        #     )
-                        #     self._draw_track_checkbox.model.set_value(False)
-                        #     ui.Spacer(height=20)
-                ui.Line(height=LINE_HEIGHT)
+                        ui.Spacer(height=LINE_HEIGHT/4)
+                        with ui.HStack(width=width, height=height):
+                            ui.Label("Up-axis: Y-axis (fixed)")
+                        ui.Spacer(height=LINE_HEIGHT/4)
 
                 self._controls_frame = ui.CollapsableFrame("CONTROLS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
                 with self._controls_frame:
                     with ui.VStack():
-                        ui.Button("Start Scenario", 
-                            clicked_fn=self._controller._on_click_start_scenario, height=DEFAULT_BTN_HEIGHT)
-                        ui.Button("Load ground plane", 
-                            clicked_fn=self._controller._on_click_load_ground_plane, height=DEFAULT_BTN_HEIGHT)
-                        ui.Button("Load forklift", 
-                            clicked_fn=self._controller._on_click_load_sample_vehicle, height=DEFAULT_BTN_HEIGHT)
-                        ui.Button("Load BasisCurve", 
-                            clicked_fn=self._controller._on_click_load_basis_curve, height=DEFAULT_BTN_HEIGHT)                        
+                        ui.Button(
+                            "Start Scenario", 
+                            clicked_fn=self._controller._on_click_start_scenario, height=DEFAULT_BTN_HEIGHT
+                        )
+                        ui.Line(height=LINE_HEIGHT)
+                        ui.Button(
+                            "Load a preset scene",
+                            clicked_fn=self._controller._on_click_load_preset_scene, height=DEFAULT_BTN_HEIGHT
+                        )
+                        ui.Line(height=LINE_HEIGHT)
+                        ui.Button(
+                            "Load a ground plane", 
+                            clicked_fn=self._controller._on_click_load_ground_plane, height=DEFAULT_BTN_HEIGHT
+                        )
+                        ui.Button(
+                            "Load a car model", 
+                            clicked_fn=self._controller._on_click_load_sample_vehicle, height=DEFAULT_BTN_HEIGHT
+                        )
+                        ui.Button(
+                            "Load a smaple BasisCurve", 
+                            clicked_fn=self._controller._on_click_load_basis_curve, height=DEFAULT_BTN_HEIGHT
+                        )
 
                 ui.Line(height=LINE_HEIGHT)
-                self._atachments_frame = ui.CollapsableFrame("VEHICLE-TO-CURVE ATTACHMENTS", 
-                    collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
+
+                self._atachments_frame = ui.CollapsableFrame(
+                    "VEHICLE-TO-CURVE ATTACHMENTS", 
+                    collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT
+                )
                 with self._atachments_frame:
                     with ui.VStack():
                         with ui.HStack(width=width, height=height):
-                            ui.Label("(1) Select WizardVehicle Xform and corresponding BasisCurve;\n(2) Click 'Attach Selected'",
-                                width=32)
-                        ui.Button("Attach Selected", 
-                            clicked_fn=self._controller._on_click_attach_selected, height=DEFAULT_BTN_HEIGHT)
-                        ui.Button("Recompute trajectories",
-                            clicked_fn=self._controller._on_click_recompute_trajectories, height=DEFAULT_BTN_HEIGHT)
+                            ui.Label(
+                                "(1) Select WizardVehicle Xform and corresponding BasisCurve;\n(2) Click 'Attach Selected'",
+                                width=32
+                            )
+                        ui.Button(
+                            "Attach Selected", 
+                            clicked_fn=self._controller._on_click_attach_selected, height=DEFAULT_BTN_HEIGHT
+                        )
+                        ui.Button(
+                            "Recompute trajectories",
+                            clicked_fn=self._controller._on_click_recompute_trajectories, height=DEFAULT_BTN_HEIGHT
+                        )
                         ui.Button("Clear All Attachments", clicked_fn=self._controller._on_click_clear_attachments)
 
         # viewport = ui.Workspace.get_window("Viewport")
         # self._window.dock_in(viewport, ui.DockPosition.BOTTOM)
+        # Dock extension window alongside 'Property' extension.
         self._window.deferred_dock_in("Property")
         # dock_in_window is deprecated unfortunatelly
         # self._window.dock_in_window("Viewport", ui.DockPosition.RIGHT, ratio=0.1)
@@ -82,6 +93,9 @@ class ExtensionUI():
     def teardown(self):
         pass
 
+# ==============================================================================
+# Additional Optional UI overlay on Viewport itself.
+# ==============================================================================
 class ViewportUI:
     def __init__(self):
         self._vehicle_velocity_label = None

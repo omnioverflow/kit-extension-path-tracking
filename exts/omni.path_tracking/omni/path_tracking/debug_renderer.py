@@ -1,8 +1,5 @@
 import carb
 from omni.debugdraw import get_debug_draw_interface
-import omni.kit.app
-from pxr import Gf
-
 import math
 
 class DebugRenderer():
@@ -23,12 +20,12 @@ class DebugRenderer():
         self._curr_time = self._curr_time + dt
         x = math.cos(self._curr_time) * self._size
         z = math.sin(self._curr_time) * self._size
-        self._debug_draw.draw_line(
-                carb.Float3(0.0, 0.0, 0.0), self._color, self._line_thickness,
-                carb.Float3(x, self._size, z), self._color, self._line_thickness
-            )
+        # self._debug_draw.draw_line(
+        #         carb.Float3(0.0, 0.0, 0.0), self._color, self._line_thickness,
+        #         carb.Float3(x, self._size, z), self._color, self._line_thickness
+        #     )
 
-        self._debug_draw.draw_sphere(carb.Float3(0.0, 0.0, 0.0), self._size, 0x70FFFFFF)
+        # self._debug_draw.draw_sphere(carb.Float3(0.0, 0.0, 0.0), self._size, 0x70FFFFFF)
 
     def _draw_segment(self, start, end, color, thickness):
         self._debug_draw.draw_line(
@@ -41,7 +38,7 @@ class DebugRenderer():
     def update_path_tracking(self, front_axle_pos, rear_axle_pos, forward, dest_pos):
         if not self._enabled:
             return
-        color = 0xFFFF4500
+        color = 0xFF222222
         thickness = 10.0
         self._draw_segment(rear_axle_pos, dest_pos, color, thickness)
         color = 0xFF00FA9A
@@ -74,20 +71,20 @@ class DebugRenderer():
             carb.Float3(x + s * up[0], y + s * up[1], z + s * up[2]),
             0xFF00FF00, t
         )
-        # Draw axle separation
-        af = vehicle.axle_front()
-        ar = vehicle.axle_rear()
-        axle_color = 0xFF8A2BE2
-        self._debug_draw.draw_line(
-            carb.Float3(af[0], af[1], af[2]),
-            axle_color, t*4,
-            carb.Float3(ar[0], ar[1], ar[2]),
-            axle_color, t*4
-        )
+        # Draw axle axis connecting front to rear
+        # af = vehicle.axle_front()
+        # ar = vehicle.axle_rear()
+        # axle_color = 0xFF8A2BE2
+        # self._debug_draw.draw_line(
+        #     carb.Float3(af[0], af[1], af[2]),
+        #     axle_color, t*4,
+        #     carb.Float3(ar[0], ar[1], ar[2]),
+        #     axle_color, t*4
+        # )
         # Draw front axle
         fl = vehicle.wheel_pos_front_left()
         fr = vehicle.wheel_pos_front_right()
-        front_axle_color = 0xFFFF1493
+        front_axle_color = 0xFFFF0000
         self._debug_draw.draw_line(
             carb.Float3(fl[0], fl[1], fl[2]),
             front_axle_color, t*2,
@@ -95,9 +92,10 @@ class DebugRenderer():
             front_axle_color, t*2
         )
         # Draw rear axle
-        rl = vehicle.wheel_pos_front_left()
-        rr = vehicle.wheel_pos_front_right()
-        rear_axle_color = 0xFFCD853F
+        rl = vehicle.wheel_pos_rear_left()
+        rr = vehicle.wheel_pos_rear_right()
+        rear_axle_color = 0xFFAAAAAA
+
         self._debug_draw.draw_line(
             carb.Float3(rl[0], rl[1], rl[2]),
             rear_axle_color, t*2,

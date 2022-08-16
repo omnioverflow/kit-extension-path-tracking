@@ -19,38 +19,28 @@ class Vehicle():
         self._prim = vehicle_prim
         self._path = self._prim.GetPath()
         self._steer_delta = 0.01
-        stage = omni.usd.get_context().get_stage()
+        self._stage = omni.usd.get_context().get_stage()
         self._wheel_prims = {
             Wheel.FRONT_LEFT : 
-                # stage.GetPrimAtPath(f"{self._path}/LeftWheel1References/Wheel_FL"),
-                stage.GetPrimAtPath(f"{self._path}/LeftWheel1References/Render"),
+                self._stage.GetPrimAtPath(f"{self._path}/LeftWheel1References"),
             Wheel.FRONT_RIGHT :
-                # stage.GetPrimAtPath(f"{self._path}/RightWheel1References/Wheel_FR"),
-                stage.GetPrimAtPath(f"{self._path}/RightWheel1References/Render"),
+                self._stage.GetPrimAtPath(f"{self._path}/RightWheel1References"),
             Wheel.REAR_LEFT :
-                # stage.GetPrimAtPath(f"{self._path}/LeftWheel2References/WHeel_RL"),
-                stage.GetPrimAtPath(f"{self._path}/LeftWheel2References/Render"),
+                self._stage.GetPrimAtPath(f"{self._path}/LeftWheel2References"),
             Wheel.REAR_RIGHT :
-                # stage.GetPrimAtPath(f"{self._path}/RightWheel2References/Wheel_RR")
-                stage.GetPrimAtPath(f"{self._path}/RightWheel2References/Render")
+                self._stage.GetPrimAtPath(f"{self._path}/RightWheel2References")
         }
 
     def steer_left(self, value):
-        if value < 0.0 or value > 1.0:
-            breakpt = 1
         self._prim.GetAttribute("physxVehicleController:steerLeft").Set(value)
         self._prim.GetAttribute("physxVehicleController:steerRight").Set(0.0)
 
     def steer_right(self, value):
-        if value < 0.0 or value > 1.0:
-            breakpt = 1
         self._prim.GetAttribute("physxVehicleController:steerLeft").Set(0.0)
         self._prim.GetAttribute("physxVehicleController:steerRight").Set(value)
 
     def accelerate(self, value):
-        vehicle_prim = omni.usd.get_context().get_stage().GetPrimAtPath(self._path)
-        vehicle_prim.GetAttribute("physxVehicleController:accelerator").Set(value)
-        # self._prim.GetAttribute("physxVehicleController:accelerator").Set(value)
+        self._vehicle().GetAttribute("physxVehicleController:accelerator").Set(value)
 
     def brake(self, value):
         self._prim.GetAttribute("physxVehicleController:brake").Set(value)
@@ -59,7 +49,7 @@ class Vehicle():
         return self._prim.GetAttribute("physics:velocity").Get()  
 
     def curr_position(self):
-        return self._prim.GetAttribute("xformOp:translate").Get()
+        return self._vehicle().GetAttribute("xformOp:translate").Get()
 
     def axle_front(self):
         return self.axle_position(Axle.FRONT)
@@ -73,6 +63,8 @@ class Vehicle():
         if type == Axle.FRONT:
             wheel_fl = self._wheel_prims[Wheel.FRONT_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_fr = self._wheel_prims[Wheel.FRONT_RIGHT].GetAttribute("xformOp:translate").Get()
+            wheel_fl[1]=0
+            wheel_fr[1]=0
             wheel_fl = Gf.Vec4f(wheel_fl[0], wheel_fl[1], wheel_fl[2], 1.0) * R
             wheel_fr = Gf.Vec4f(wheel_fr[0], wheel_fr[1], wheel_fr[2], 1.0) * R
             wheel_fl = Gf.Vec3f(wheel_fl[0], wheel_fl[1], wheel_fl[2]) + curr_pos
@@ -81,6 +73,8 @@ class Vehicle():
         elif type == Axle.REAR:
             wheel_rl = self._wheel_prims[Wheel.REAR_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_rr = self._wheel_prims[Wheel.REAR_RIGHT].GetAttribute("xformOp:translate").Get()
+            wheel_rl[1]=0
+            wheel_rr[1]=0
             wheel_rl = Gf.Vec4f(wheel_rl[0], wheel_rl[1], wheel_rl[2], 1.0) * R
             wheel_rr = Gf.Vec4f(wheel_rr[0], wheel_rr[1], wheel_rr[2], 1.0) * R
             wheel_rl = Gf.Vec3f(wheel_rl[0], wheel_rl[1], wheel_rl[2]) + curr_pos
@@ -108,7 +102,9 @@ class Vehicle():
         return self._wheel_pos(Wheel.REAR_RIGHT)
 
     def rotation_matrix(self):
-        attr_rotate = self._prim.GetAttribute("xformOp:orient").Get()
+        attr_rotate = self._vehicle().GetAttribute("xformOp:orient").Get()
+        # Sets the matrix to specify a rotation equivalent to rot, 
+        # and clears the translation.
         return Gf.Matrix4d().SetRotate(attr_rotate)
 
     def forward(self):
@@ -126,3 +122,6 @@ class Vehicle():
 
     def _up_local(self):
         return Gf.Vec3f(0.0, 1.0, 0.0)
+
+    def _vehicle(self):
+        return self._stage.GetPrimAtPath(self._path)

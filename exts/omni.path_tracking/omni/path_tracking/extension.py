@@ -17,7 +17,8 @@ from .utils import Utils
 # ==============================================================================
 
 class ExtensionModel:
-    def __init__(self):
+    def __init__(self, extension_id):
+        self._ext_id = extension_id
         self.METERS_PER_UNIT = 0.01
         UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.METERS_PER_UNIT)
         self._vehicle_paths = []
@@ -97,6 +98,45 @@ class ExtensionModel:
         for scenario in self._scenarios:
             scenario.draw_track = flag
 
+    def load_ground_plane(self):
+        stage = omni.usd.get_context().get_stage()
+        path = omni.usd.get_stage_next_free_path(stage, "/GroundPlane", False)
+        Utils.add_ground_plane(stage, path, "Y")
+
+    def load_sample_vehicle(self):
+        usd_context = omni.usd.get_context()
+        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
+        forklift_prim_path = "/"
+        forklift_prim_path = omni.usd.get_stage_next_free_path(
+            usd_context.get_stage(),
+            forklift_prim_path, 
+            True
+        )
+        forklift_usd_path = f"{ext_path}/data/car.usd"
+        omni.kit.commands.execute(
+            "CreateReferenceCommand",
+            path_to=forklift_prim_path,
+            asset_path=forklift_usd_path,
+            usd_context=usd_context,
+        )
+
+    def load_sample_track(self):
+        usd_context = omni.usd.get_context()
+        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
+        basis_curve_prim_path = "/BasisCurves"
+        basis_curve_prim_path = omni.usd.get_stage_next_free_path(
+            usd_context.get_stage(),
+            basis_curve_prim_path, 
+            True
+        )
+        basis_curve_usd_path = f"{ext_path}/data/curve.usd"
+        omni.kit.commands.execute(
+            "CreateReferenceCommand",
+            path_to=basis_curve_prim_path,
+            asset_path=basis_curve_usd_path,
+            usd_context=usd_context,
+        )
+
 # ==============================================================================
 # 
 # PathTrackingExtension
@@ -105,10 +145,9 @@ class ExtensionModel:
 class PathTrackingExtension(omni.ext.IExt):
 
     def on_startup(self, ext_id):
-        self._ext_id = ext_id
         self._ui = ExtensionUI(self)
         self._ui.build_ui()
-        self._model = ExtensionModel()
+        self._model = ExtensionModel(ext_id)
 
     def on_shutdown(self):        
         self._ui.teardown()
@@ -128,57 +167,28 @@ class PathTrackingExtension(omni.ext.IExt):
         omni.timeline.get_timeline_interface().play()
 
     def _on_click_load_sample_vehicle(self):
-        usd_context = omni.usd.get_context()
-        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
-        forklift_prim_path = "/"
-        forklift_prim_path = omni.usd.get_stage_next_free_path(
-            usd_context.get_stage(),
-            forklift_prim_path, 
-            True
-        )
-        forklift_usd_path = f"{ext_path}/data/forklift.usd"
-        omni.kit.commands.execute(
-            "CreateReferenceCommand",
-            path_to=forklift_prim_path,
-            asset_path=forklift_usd_path,
-            usd_context=usd_context,
-        )
+        self._model.load_sample_vehicle()        
 
     def _on_click_load_ground_plane(self):
-        stage = omni.usd.get_context().get_stage()
-        path = omni.usd.get_stage_next_free_path(stage, "/GroundPlane", False)
-        Utils.add_ground_plane(stage, path, "Y")
+        self._model.load_ground_plane()
 
     def _on_click_load_basis_curve(self):
-        usd_context = omni.usd.get_context()
-        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
-        basis_curve_prim_path = "/BasisCurves"
-        basis_curve_prim_path = omni.usd.get_stage_next_free_path(
-            usd_context.get_stage(),
-            basis_curve_prim_path, 
-            True
-        )
-        basis_curve_usd_path = f"{ext_path}/data/curve.usd"
-        omni.kit.commands.execute(
-            "CreateReferenceCommand",
-            path_to=basis_curve_prim_path,
-            asset_path=basis_curve_usd_path,
-            usd_context=usd_context,
-        )
+        self._model.load_sample_track()        
 
-    def _on_click_track_selected(self):
-        # FIXME: remove dead code
-        selected_paths = omni.usd.get_context().get_selection().get_selected_prim_paths()
-        if len(selected_paths) == 1:
-            if len(self._trajectory_paths) > 0:
-                self._trajectory_paths[0] = selected_paths[0]
-            else:
-                self._trajectory_paths.append(selected_paths[0])
-            if len(self._scenarios) and len(self._scenario_managers):
-                manager = self._scenario_managers[0]
-                scenario = self._scenarios[0]
-                scenario.recompute_trajectory()
-                manager.set_scenario(scenario)
+    # def _on_click_track_selected(self):
+    #     selected_paths = omni.usd.get_context().get_selection().get_selected_prim_paths()
+    #     self._model.attach_vehicle_to_curve(selected_paths)
+        # selected_paths = omni.usd.get_context().get_selection().get_selected_prim_paths()
+        # if len(selected_paths) == 1:
+        #     if len(self._trajectory_paths) > 0:
+        #         self._trajectory_paths[0] = selected_paths[0]
+        #     else:
+        #         self._trajectory_paths.append(selected_paths[0])
+        #     if len(self._scenarios) and len(self._scenario_managers):
+        #         manager = self._scenario_managers[0]
+        #         scenario = self._scenarios[0]
+        #         scenario.recompute_trajectory()
+        #         manager.set_scenario(scenario)
 
     def _on_click_attach_selected(self):
         selected = omni.usd.get_context().get_selection().get_selected_prim_paths()
@@ -189,6 +199,16 @@ class PathTrackingExtension(omni.ext.IExt):
 
     def _on_click_recompute_trajectories(self):
         self._model.recompute_trajectories()
+
+    def _on_click_load_preset_scene(self):
+        self._model.load_ground_plane()
+        self._model.load_sample_vehicle()
+        self._model.load_sample_track()
+        prim_paths = [
+            "/World_01/WizardVehicle1",
+            "/World/BasisCurves/BasisCurves"
+        ]
+        self._model.attach_vehicle_to_curve(prim_paths)
 
     def _changed_enable_debug(self, model):
         self._model.set_enable_debug(model.as_bool)

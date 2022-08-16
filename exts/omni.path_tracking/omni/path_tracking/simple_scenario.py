@@ -96,7 +96,7 @@ class SimpleScenario(Scenario):
         curr_vehicle_pos = self._vehicle.curr_position()
 
         self._debug_render.update_vehicle(self._vehicle)
-        # self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
+        self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
 
         # Project onto xz
         curr_vehicle_pos[1] = 0.0
@@ -110,7 +110,7 @@ class SimpleScenario(Scenario):
         axle_rear = Gf.Vec3f(self._vehicle.axle_position(Axle.REAR))
         # axle_rear[1] = 0.0
 
-        self._debug_render.update_path_tracking(axle_front, axle_rear, forward, dest_position)
+        # self._debug_render.update_path_tracking(axle_front, axle_rear, forward, dest_position)
 
         steer_angle = self._motion_controller.on_step(
             axle_front,
