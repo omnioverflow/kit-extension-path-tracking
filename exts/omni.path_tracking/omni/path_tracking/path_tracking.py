@@ -1,4 +1,5 @@
 # ==============================================================================
+# 
 # Implements path tracking in spirit of Pure Pursuit algorithm.
 # 
 # References
@@ -6,6 +7,8 @@
 #   https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
 # * https://dingyan89.medium.com/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
 # 
+# ==============================================================================
+
 import math
 import numpy as np
 
@@ -14,9 +17,15 @@ class PurePursuitPathTracker():
         self._max_steer_angle_radians = max_steer_angle_radians
 
     def _steer_value_from_angle(self, angle):
+        """
+        Put steering angle into expected range [-1, 1].
+        """
         return np.clip(angle / self._max_steer_angle_radians, -1.0, 1.0)
 
     def on_step(self, front_axle_pos, rear_axle_pos, forward, dest_pos, curr_pos):
+        """
+        Recomputes vehicle's steering angle on a simulation step.
+        """
         front_axle_pos, rear_axle_pos = rear_axle_pos, front_axle_pos
         # Lookahead points to the next destination point
         lookahead = dest_pos - rear_axle_pos
@@ -32,7 +41,7 @@ class PurePursuitPathTracker():
         forward.Normalize()
         
         # Compute a signed angle alpha between lookahead and forward vectors,
-        # left-handed rotation assumed.
+        # /!\ left-handed rotation assumed.
         dot = lookahead[0] * forward[0] + lookahead[2] * forward[2]
         cross = lookahead[0] * forward[2] - lookahead[2] * forward[0]
         alpha = math.atan2(cross, dot)

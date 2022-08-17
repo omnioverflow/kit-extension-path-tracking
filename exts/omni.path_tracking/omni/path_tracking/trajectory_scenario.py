@@ -5,9 +5,14 @@ from pxr import Gf, UsdGeom
 from .simple_scenario import SimpleScenario
 
 # ==============================================================================
+# 
 # Trajectory
+# 
 # ==============================================================================
 class Trajectory():
+    """
+    A helper class to access coordinates of points that form a BasisCurve prim.
+    """
     def __init__(self, prim_path):
         stage = omni.usd.get_context().get_stage()
         basis_curves = UsdGeom.BasisCurves.Get(stage, prim_path)
@@ -31,11 +36,11 @@ class Trajectory():
                 carb.log_info(f"translation_vec {translation_vec}")
                 carb.log_info(f"translation_vec type {type(translation_vec)}")
                 carb.log_info(f"before {i}: {self._points[i]}")
-                # self._points[i] = self._points[i] * R + Gf.Vec3f(translation_vec)
+                
                 p = Gf.Vec4d(self._points[i][0], self._points[i][1], self._points[i][2], 1.0)
                 p_ = p * R * T
                 self._points[i] = Gf.Vec3f(p_[0], p_[1], p_[2])
-                # self._points[i] = self._points[i] * R * T
+
                 carb.log_info(f"after {i}: {self._points[i]}")
         else:
             self._points = None
@@ -43,19 +48,30 @@ class Trajectory():
         self._pointer = 0
 
     def point(self):
+        """
+        Returns current point.
+        """
         return self._points[self._pointer] if self._pointer < len(self._points) else None
 
     def next_point(self):
-
+        """
+        Next point on the curve.
+        """
         if (self._pointer < self._num_points):
             self._pointer = self._pointer + 1
             return self.point()
         return None
 
     def reset(self):
+        """
+        Resets current point to the first one.
+        """
         self._pointer = 0
 
     def draw(self):
+        """
+        Draw debug overlay with segments formed by consecutive point pairs.
+        """
         draw_interface = get_debug_draw_interface()
         for i in range(len(self._points) - 1):
             p0 = self._points[i]
@@ -68,9 +84,15 @@ class Trajectory():
             )
 
 # ==============================================================================
+# 
 # TrajectoryScenario
+# 
 # ==============================================================================
 class TrajectoryScenario(SimpleScenario):
+    """
+    Scenario for vehicle path tracking.
+    """
+
     def __init__(self, vehicle_path, trajectory_prim_path, meters_per_unit, viewport_ui=None):
         super().__init__(viewport_ui, meters_per_unit, vehicle_path, destination=False)
         self._dest = None
@@ -80,6 +102,9 @@ class TrajectoryScenario(SimpleScenario):
         self.draw_track = False
 
     def on_step(self, deltaTime, totalTime):
+        """
+        Updates vehicle control on sim update callback in order to stay on tracked path.
+        """
         forward = self._vehicle.forward()
         up = self._vehicle.up()
         
@@ -94,6 +119,7 @@ class TrajectoryScenario(SimpleScenario):
                 dest_position = self._trajectory.next_point()                
             if dest_position:
                     distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
+                    # Compute vehicle steering and acceleration
                     self._process(forward, up, dest_position, distance, is_close_to_dest)
             else:
                 self._full_stop()

@@ -1,5 +1,4 @@
 import omni.ui as ui
-import math
 
 DEFAULT_BTN_HEIGHT = 22
 COLLAPSABLE_FRAME_HEIGHT = 32

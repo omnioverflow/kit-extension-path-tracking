@@ -2,64 +2,16 @@ import omni.usd
 import math
 import numpy as np
 import random
-from pxr import Gf, Sdf, UsdShade
+from pxr import Gf, Sdf
 from .debug_renderer import DebugRenderer
 from .path_tracking import PurePursuitPathTracker
 from .stepper import Scenario
 from .vehicle import Axle, Vehicle
 
 # ==============================================================================
-# Desitanation
-# ==============================================================================
-class Destination():
-    def __init__(self):
-        res, path = omni.kit.commands.execute("CreateMeshPrimCommand", prim_type="Sphere")
-        if res:
-            stage = omni.usd.get_context().get_stage()
-            self._prim = stage.GetPrimAtPath(path)
-            
-            x = random.uniform(5000.0, 10000.0)
-            z = random.uniform(5000.0, 10000.0)
-
-            attr_translate = self._prim.CreateAttribute("xformOp:translate", Sdf.ValueTypeNames.Float3, False)
-            attr_translate.Set(Gf.Vec3f(x, 0.0, z))
-            self._prim.CreateAttribute("xformOp:rotateZYX", Sdf.ValueTypeNames.Float3, False).Set(
-                Gf.Vec3f(0.0, 0.0, 0.0)
-            )
-            self._prim.CreateAttribute("xformOp:scale", Sdf.ValueTypeNames.Float3, False).Set(
-                Gf.Vec3f(1.0, 1.0, 1.0)
-            )
-            self._prim.CreateAttribute("xformOpOrder", Sdf.ValueTypeNames.String, False).Set(
-                ["xformOp:translate", "xformOp:rotateZYX", "xformOp:scale"]
-            )
-
-            mtl_created_list = []
-            omni.kit.commands.execute(
-                "CreateAndBindMdlMaterialFromLibrary",
-                mdl_name="OmniPBR.mdl",
-                mtl_name="RedOmniPBR",
-                mtl_created_list=mtl_created_list,
-            )
-
-            self._red_mtl_prim = stage.GetPrimAtPath(mtl_created_list[0])
-            omni.usd.create_material_input(self._red_mtl_prim, 
-                "diffuse_color_constant", 
-                Gf.Vec3f(1, 0, 0), 
-                Sdf.ValueTypeNames.Color3f)
-        
-            red_mat_shade = UsdShade.Material(self._red_mtl_prim)
-            UsdShade.MaterialBindingAPI(self._prim).Bind(red_mat_shade, UsdShade.Tokens.strongerThanDescendants)
-    
-    def teardown(self):
-        stage = omni.usd.get_context().get_stage()
-        stage.RemovePrim(self._prim.GetPath())
-        stage.RemovePrim(self._red_mtl_prim.GetPath())
-
-    def position(self):
-        return self._prim.GetAttribute("xformOp:translate").Get()
-
-# ==============================================================================
+#
 # SimpleScenario
+#
 # ==============================================================================
 class SimpleScenario(Scenario):
     def __init__(self, viewport_ui, meters_per_unit, vehicle_path, destination=True):
@@ -79,7 +31,7 @@ class SimpleScenario(Scenario):
         self._vehicle.accelerate(1.0)
 
     def on_end(self):
-        pass
+        self._vehicle.brake(1.0)
     
     def _vehicle_is_close_to(self, point):
         if not point:
@@ -91,6 +43,9 @@ class SimpleScenario(Scenario):
         return tuple([distance, distance < 400.0])
 
     def _process(self, forward, up, dest_position, distance=None, is_close_to_dest=False):
+        """
+        Steering/accleleration vehicle control heuristic.
+        """
         if (distance is None):
             distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
         curr_vehicle_pos = self._vehicle.curr_position()
@@ -98,17 +53,18 @@ class SimpleScenario(Scenario):
         self._debug_render.update_vehicle(self._vehicle)
         self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
 
-        # Project onto xz
+        # FIXME: - currently the extension expect Y-up axis which is not flexible.
+        # Project onto XZ plane
         curr_vehicle_pos[1] = 0.0
         forward[1] = 0.0
         dest_position[1] = 0.0
 
         velocity = self._vehicle.get_velocity()
         speed = self._vehicle_speed(velocity)
-        axle_front = Gf.Vec3f(self._vehicle.axle_position(Axle.FRONT))
-        # axle_front[1] = 0.0
+        axle_front = Gf.Vec3f(self._vehicle.axle_position(Axle.FRONT))        
         axle_rear = Gf.Vec3f(self._vehicle.axle_position(Axle.REAR))
-        # axle_rear[1] = 0.0
+        axle_front[1] = 0.0
+        axle_rear[1] = 0.0
 
         # self._debug_render.update_path_tracking(axle_front, axle_rear, forward, dest_position)
 
@@ -163,3 +119,40 @@ class SimpleScenario(Scenario):
 
     def enable_debug(self, flag):
         self._debug_render.enable(flag)
+
+# ==============================================================================
+# Desitanation
+# ==============================================================================
+class Destination():
+    def __init__(self):
+        """
+        Models both position of the destination in 3D scene,
+        and its visual representation as a sphere.
+        """
+        res, path = omni.kit.commands.execute("CreateMeshPrimCommand", prim_type="Sphere")
+        if res:
+            stage = omni.usd.get_context().get_stage()
+            self._prim = stage.GetPrimAtPath(path)
+            
+            x = random.uniform(5000.0, 10000.0)
+            z = random.uniform(5000.0, 10000.0)
+
+            attr_translate = self._prim.CreateAttribute("xformOp:translate", Sdf.ValueTypeNames.Float3, False)
+            attr_translate.Set(Gf.Vec3f(x, 0.0, z))
+            self._prim.CreateAttribute("xformOp:rotateZYX", Sdf.ValueTypeNames.Float3, False).Set(
+                Gf.Vec3f(0.0, 0.0, 0.0)
+            )
+            self._prim.CreateAttribute("xformOp:scale", Sdf.ValueTypeNames.Float3, False).Set(
+                Gf.Vec3f(1.0, 1.0, 1.0)
+            )
+            self._prim.CreateAttribute("xformOpOrder", Sdf.ValueTypeNames.String, False).Set(
+                ["xformOp:translate", "xformOp:rotateZYX", "xformOp:scale"]
+            )
+    
+    def teardown(self):
+        stage = omni.usd.get_context().get_stage()
+        stage.RemovePrim(self._prim.GetPath())
+        stage.RemovePrim(self._red_mtl_prim.GetPath())
+
+    def position(self):
+        return self._prim.GetAttribute("xformOp:translate").Get()

@@ -15,6 +15,11 @@ class Wheel(IntEnum):
     REAR_RIGHT = 3
 
 class Vehicle():
+    """
+    A wrapper created to help manipulating state of a vehicle prim and its
+    dynamic properties, such as acceleration, desceleration, steering etc.
+    """
+
     def __init__(self, vehicle_prim):
         self._prim = vehicle_prim
         self._path = self._prim.GetPath()
@@ -63,8 +68,8 @@ class Vehicle():
         if type == Axle.FRONT:
             wheel_fl = self._wheel_prims[Wheel.FRONT_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_fr = self._wheel_prims[Wheel.FRONT_RIGHT].GetAttribute("xformOp:translate").Get()
-            wheel_fl[1]=0
-            wheel_fr[1]=0
+            wheel_fl[1]=0.0
+            wheel_fr[1]=0.0
             wheel_fl = Gf.Vec4f(wheel_fl[0], wheel_fl[1], wheel_fl[2], 1.0) * R
             wheel_fr = Gf.Vec4f(wheel_fr[0], wheel_fr[1], wheel_fr[2], 1.0) * R
             wheel_fl = Gf.Vec3f(wheel_fl[0], wheel_fl[1], wheel_fl[2]) + curr_pos
@@ -73,8 +78,8 @@ class Vehicle():
         elif type == Axle.REAR:
             wheel_rl = self._wheel_prims[Wheel.REAR_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_rr = self._wheel_prims[Wheel.REAR_RIGHT].GetAttribute("xformOp:translate").Get()
-            wheel_rl[1]=0
-            wheel_rr[1]=0
+            wheel_rl[1]=0.0
+            wheel_rr[1]=0.0
             wheel_rl = Gf.Vec4f(wheel_rl[0], wheel_rl[1], wheel_rl[2], 1.0) * R
             wheel_rr = Gf.Vec4f(wheel_rr[0], wheel_rr[1], wheel_rr[2], 1.0) * R
             wheel_rl = Gf.Vec3f(wheel_rl[0], wheel_rl[1], wheel_rl[2]) + curr_pos
@@ -102,10 +107,12 @@ class Vehicle():
         return self._wheel_pos(Wheel.REAR_RIGHT)
 
     def rotation_matrix(self):
-        attr_rotate = self._vehicle().GetAttribute("xformOp:orient").Get()
-        # Sets the matrix to specify a rotation equivalent to rot, 
-        # and clears the translation.
-        return Gf.Matrix4d().SetRotate(attr_rotate)
+        """
+        Sets the matrix to specify a rotation equivalent to orientation (quatd), 
+        and clears the translation.
+        """
+        orient = self._vehicle().GetAttribute("xformOp:orient").Get()
+        return Gf.Matrix4d().SetRotate(orient)
 
     def forward(self):
         R = self.rotation_matrix()

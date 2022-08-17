@@ -8,8 +8,14 @@ from omni.physx.bindings._physx import SimulationEvent
 import math
 import threading
 
+"""
+Based on Nvidia's sample from omni.physx.vehicle Physics extension.
+"""
+
 # ==============================================================================
+# 
 # Scenario
+# 
 # ==============================================================================
 class Scenario:
     def __init__(self, secondsToRun, timeStep = 1.0 / 60.0):
@@ -29,7 +35,9 @@ class Scenario:
         pass
 
 # ==============================================================================
+# 
 # SimStepTracker
+# 
 # ==============================================================================
 class SimStepTracker:
     def __init__(self, scenario, scenarioDoneSignal):
@@ -46,9 +54,6 @@ class SimStepTracker:
         self._resetOnNextResume = False
 
     def abort(self):
-        # note: closing a stage sends the SimulationEvent.STOPPED event now. Thus, it would not be necessary
-        #       anymore to check and trigger the stop logic. However, this method is kept general in case
-        #       it gets called on other occasions in the future.
         if self._hasStarted:
             self._on_stop()
 
@@ -108,7 +113,9 @@ class SimStepTracker:
                 self._scenarioDoneSignal.set()
 
 # ==============================================================================
+# 
 # StageEventListener
+# 
 # ==============================================================================
 class StageEventListener:
     def __init__(self, simStepTracker):
@@ -144,7 +151,9 @@ class StageEventListener:
         self._simStepTracker.stop()
 
 # ==============================================================================
+# 
 # ScenarioManager
+# 
 # ==============================================================================
 class ScenarioManager:
     def __init__(self, scenario):
@@ -157,12 +166,6 @@ class ScenarioManager:
         self._stageEventListener = StageEventListener(simStepTracker)
 
     def _run_scenario_internal(self, scenario, resetAtEnd):
-        """
-        Obsolete way to run a scenario using a helper thread.
-        This was taken from the Omniverse sample code. Not sure if it makes sense
-        to have a separate thread blocked, whose only responsibility would be
-        to stop the simulation timeline.
-        """
         scenarioDoneSignal = threading.Event()
         simStepTracker = SimStepTracker(scenario, scenarioDoneSignal)
         self._stageEventListener = StageEventListener(simStepTracker)
@@ -213,10 +216,6 @@ class ScenarioManager:
             timeline.stop()
         # force play
         timeline.play()
-
-    @staticmethod
-    def play():
-        omni.timeline.get_timeline_interface().play()
 
     def stop_scenario(self):
         self._stageEventListener._stop()

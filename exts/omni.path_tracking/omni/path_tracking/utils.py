@@ -1,4 +1,3 @@
-from os import stat
 import omni.usd
 from pxr import UsdGeom, Sdf, Gf, UsdPhysics, PhysxSchema
 

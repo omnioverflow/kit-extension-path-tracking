@@ -2,6 +2,15 @@ import carb
 from omni.debugdraw import get_debug_draw_interface
 import math
 
+"""
+    Note: DebugRenderer relies on `omni.debugdraw` utility to optionally provide
+    a debug overlay with additional info regarding current state of vehicle,
+    path tracking destination etc.
+    Using omni.ui.scene would be more future proof as it will break
+    dependency on `omni.debugdraw` which may change or not guaranteed to be
+    kept in the future in Kit-based apps.
+
+"""
 class DebugRenderer():
     def __init__(self):
         self._debug_draw = get_debug_draw_interface()
