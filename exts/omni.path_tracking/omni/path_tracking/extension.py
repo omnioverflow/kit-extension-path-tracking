@@ -18,7 +18,10 @@ class PathTrackingExtension(omni.ext.IExt):
         self._ui.build_ui()
         self._model = ExtensionModel(ext_id)
 
-    def on_shutdown(self):        
+    def on_shutdown(self):
+        timeline = omni.timeline.get_timeline_interface()
+        if timeline.is_playing():
+            timeline.stop()
         self._ui.teardown()
         self._ui = None
         self._model.teardown()

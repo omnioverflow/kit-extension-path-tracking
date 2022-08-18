@@ -15,7 +15,7 @@ class DebugRenderer():
     def __init__(self):
         self._debug_draw = get_debug_draw_interface()
         self._curr_time = 0.0
-        self._color = 0x60FFFFFF
+        self._color = 0x60FF0000
         self._line_thickness = 2.0
         self._size = 250.0
         self._enabled = True

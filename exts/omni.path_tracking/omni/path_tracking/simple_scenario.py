@@ -16,6 +16,7 @@ from .vehicle import Axle, Vehicle
 class SimpleScenario(Scenario):
     def __init__(self, viewport_ui, meters_per_unit, vehicle_path, destination=True):
         self._METERS_PER_UNIT = meters_per_unit
+        self._max_speed = 250.0
         self._viewport_ui = viewport_ui
         secondsToRun = 10000.0
         timeStepsPerSecond = 25
@@ -25,7 +26,7 @@ class SimpleScenario(Scenario):
         self._vehicle = Vehicle(self._stage.GetPrimAtPath(vehicle_path))
         self._dest = Destination() if destination else None
         self._debug_render = DebugRenderer()
-        self._motion_controller = PurePursuitPathTracker(math.pi / 4)
+        self._path_tracker = PurePursuitPathTracker(math.pi / 4)
     
     def on_start(self):
         self._vehicle.accelerate(1.0)
@@ -33,14 +34,18 @@ class SimpleScenario(Scenario):
     def on_end(self):
         self._vehicle.brake(1.0)
     
-    def _vehicle_is_close_to(self, point):
+    def _vehicle_is_close_to(self, point, is_end_point=False):
         if not point:
             raise Exception("Point is None")
         curr_vehicle_pos = self._vehicle.curr_position()
         if not curr_vehicle_pos:
             raise Exception("curr_vehicle_pos is None")
         distance = np.linalg.norm(curr_vehicle_pos - point)
-        return tuple([distance, distance < 400.0])
+        proximity_threshold = 400.0
+        if is_end_point:
+            proximity_threshold = 200.0
+
+        return tuple([distance, distance < proximity_threshold])
 
     def _process(self, forward, up, dest_position, distance=None, is_close_to_dest=False):
         """
@@ -68,7 +73,7 @@ class SimpleScenario(Scenario):
 
         # self._debug_render.update_path_tracking(axle_front, axle_rear, forward, dest_position)
 
-        steer_angle = self._motion_controller.on_step(
+        steer_angle = self._path_tracker.on_step(
             axle_front,
             axle_rear,
             forward,
@@ -76,17 +81,21 @@ class SimpleScenario(Scenario):
             curr_vehicle_pos
         )
 
-        # Accelerate/break control heuristic
         if steer_angle < 0:
             self._vehicle.steer_left(abs(steer_angle))
         else:
             self._vehicle.steer_right(steer_angle)
-        if abs(steer_angle) > 0.3 and speed > 5.0:
+        # Accelerate/break control heuristic
+        if abs(steer_angle) > 0.1 and speed > 5.0:
             self._vehicle.brake(1.0)
             self._vehicle.accelerate(0.0)
         else:
-            self._vehicle.brake(0.0)
-            self._vehicle.accelerate(0.7)
+            if (speed >= self._max_speed):
+                self._vehicle.brake(0.8)
+                self._vehicle.accelerate(0.0)
+            else:
+                self._vehicle.brake(0.0)
+                self._vehicle.accelerate(0.7)
 
     def _full_stop(self):
         self._vehicle.accelerate(0.0)
@@ -115,7 +124,7 @@ class SimpleScenario(Scenario):
         self._stage = None
         self._vehicle = None
         self._debug_render = None
-        self._motion_controller = None
+        self._path_tracker = None
 
     def enable_debug(self, flag):
         self._debug_render.enable(flag)

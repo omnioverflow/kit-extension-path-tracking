@@ -24,8 +24,8 @@ class ExtensionUI():
                         height = 16
                         with ui.HStack(width=width, height=height):
                             ui.Label("Enable debug: ")
-                            self._enable_debug_checkbox = ui.CheckBox()
-                            self._enable_debug_checkbox.model.add_value_changed_fn(
+                            enable_debug_checkbox = ui.CheckBox()
+                            enable_debug_checkbox.model.add_value_changed_fn(
                                 self._controller._changed_enable_debug
                             )
                         ui.Spacer(height=LINE_HEIGHT/4)
@@ -55,7 +55,7 @@ class ExtensionUI():
                             clicked_fn=self._controller._on_click_load_sample_vehicle, height=DEFAULT_BTN_HEIGHT
                         )
                         ui.Button(
-                            "Load a smaple BasisCurve", 
+                            "Load a sample BasisCurve", 
                             clicked_fn=self._controller._on_click_load_basis_curve, height=DEFAULT_BTN_HEIGHT
                         )
 
@@ -90,7 +90,11 @@ class ExtensionUI():
         # self._window.dock_in_window("Viewport", ui.DockPosition.RIGHT, ratio=0.1)
 
     def teardown(self):
-        pass
+        self._controller = None
+        self._settings_frame = None
+        self._controls_frame = None
+        self._atachments_frame = None
+        self._window = None
 
 # ==============================================================================
 # Additional Optional UI overlay on Viewport itself.

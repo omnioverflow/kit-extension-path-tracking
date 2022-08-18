@@ -62,6 +62,12 @@ class Trajectory():
             return self.point()
         return None
 
+    def is_at_end_point(self):
+        """
+        Checks if the current point is the last one.
+        """
+        return self._pointer == (self._num_points - 1)
+
     def reset(self):
         """
         Resets current point to the first one.
@@ -112,20 +118,18 @@ class TrajectoryScenario(SimpleScenario):
             self._trajectory.draw()
 
         dest_position = self._trajectory.point()
-        # Run vehicle control unless reached the destination (i.e. dest_position is None)
+        is_end_point = self._trajectory.is_at_end_point()
+        # Run vehicle control unless reached the destination
         if dest_position:
-            distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
+            distance, is_close_to_dest = self._vehicle_is_close_to(dest_position, is_end_point)
             if (is_close_to_dest):
                 dest_position = self._trajectory.next_point()                
-            if dest_position:
-                    distance, is_close_to_dest = self._vehicle_is_close_to(dest_position)
-                    # Compute vehicle steering and acceleration
-                    self._process(forward, up, dest_position, distance, is_close_to_dest)
             else:
-                self._full_stop()
-        elif not self._stopped:
+                # Compute vehicle steering and acceleration
+                self._process(forward, up, dest_position, distance, is_close_to_dest)
+        else:
             self._stopped = True
-            self._full_stop()
+            self._full_stop()            
 
     def on_end(self):
         self._trajectory.reset()

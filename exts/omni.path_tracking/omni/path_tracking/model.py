@@ -76,8 +76,7 @@ class ExtensionModel:
                 scenario = TrajectoryScenario(
                     self._vehicle_paths[i],
                     self._trajectory_paths[i],
-                    self.METERS_PER_UNIT,
-                    i
+                    self.METERS_PER_UNIT
                 )
                 scenario.enable_debug(self._enable_debug)
                 self._scenarios.append(scenario)
@@ -122,17 +121,17 @@ class ExtensionModel:
         """
         usd_context = omni.usd.get_context()
         ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
-        forklift_prim_path = "/"
-        forklift_prim_path = omni.usd.get_stage_next_free_path(
+        vehicle_prim_path = "/"
+        vehicle_prim_path = omni.usd.get_stage_next_free_path(
             usd_context.get_stage(),
-            forklift_prim_path, 
+            vehicle_prim_path, 
             True
         )
-        forklift_usd_path = f"{ext_path}/data/car.usd"
+        vehicle_usd_path = f"{ext_path}/data/vehicle.usd"
         omni.kit.commands.execute(
             "CreateReferenceCommand",
-            path_to=forklift_prim_path,
-            asset_path=forklift_usd_path,
+            path_to=vehicle_prim_path,
+            asset_path=vehicle_usd_path,
             usd_context=usd_context,
         )
 
