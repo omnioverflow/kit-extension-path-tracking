@@ -21,7 +21,6 @@ class ExtensionModel:
         self._up_axis = "Y"
         self._vehicle_paths = []
         self._trajectory_paths = []
-        self._scenarios = []
         self._scenario_managers = []
         # Enables debug overlay with additional info regarding current vehicle state.
         self._enable_debug=False
@@ -30,7 +29,6 @@ class ExtensionModel:
         for manager in self._scenario_managers:
             manager.stop_scenario()
         self._scenario_managers = None
-        self._scenarios = None
 
     def attach_vehicle_to_curve(self, selected_paths):
         """
@@ -68,7 +66,7 @@ class ExtensionModel:
         """
         vehicle_count = len(self._vehicle_paths)
         trajectory_count = len(self._trajectory_paths)
-        scenario_count = len(self._scenarios)
+        scenario_count = len(self._scenario_managers)
         assert(vehicle_count == trajectory_count)
 
         if scenario_count < vehicle_count:
@@ -79,11 +77,8 @@ class ExtensionModel:
                     self.METERS_PER_UNIT
                 )
                 scenario.enable_debug(self._enable_debug)
-                self._scenarios.append(scenario)
                 scenario_manager = ScenarioManager(scenario)
                 self._scenario_managers.append(scenario_manager)
-        for scenario in self._scenarios:
-            scenario.reset()
 
         self.recompute_trajectories()
 
@@ -92,20 +87,17 @@ class ExtensionModel:
         Update tracked trajectories. Often needed when BasisCurve defining a
         trajectory in the scene was updated by a user.
         """
-        assert(len(self._scenarios) == len(self._scenario_managers))
         for i in range(len(self._scenario_managers)):
-            scenario = self._scenarios[i]
             manager = self._scenario_managers[i]
-            scenario.recompute_trajectory()
-            manager.set_scenario(scenario)
+            manager.scenario.recompute_trajectory()
 
     def set_enable_debug(self, flag):
         """
         Enables/disables debug overlay.
         """
         self._enable_debug = flag
-        for scenario in self._scenarios:
-            scenario.enable_debug(flag)
+        for manager in self._scenario_managers:
+            manager.scenario.enable_debug(flag)
 
     def load_ground_plane(self):
         """
@@ -121,7 +113,7 @@ class ExtensionModel:
         """
         usd_context = omni.usd.get_context()
         ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
-        vehicle_prim_path = "/"
+        vehicle_prim_path = "/VehicleTemplate"
         vehicle_prim_path = omni.usd.get_stage_next_free_path(
             usd_context.get_stage(),
             vehicle_prim_path, 
@@ -160,7 +152,11 @@ class ExtensionModel:
         Prim paths for the preset scene with prim paths for vehicle-to-curve
         attachment.
         """
+        stage = omni.usd.get_context().get_stage()
+        default_prim = stage.GetDefaultPrim()
+        metadata = default_prim.GetCustomData()
+        # default_prim.SetCustomData()
         return [
-            "/World_01/WizardVehicle1",
+            "/World/VehicleTemplate/WizardVehicle1",
             "/World/BasisCurves/BasisCurves"
         ]

@@ -139,6 +139,3 @@ class TrajectoryScenario(SimpleScenario):
 
     def recompute_trajectory(self):
         self._trajectory = Trajectory(self._trajectory_prim_path)
-
-    def reset(self):
-        self._stopped = False

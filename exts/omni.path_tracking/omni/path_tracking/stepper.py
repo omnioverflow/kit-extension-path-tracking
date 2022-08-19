@@ -157,6 +157,7 @@ class StageEventListener:
 # ==============================================================================
 class ScenarioManager:
     def __init__(self, scenario):
+        self._scenario = scenario
         self._setup(scenario)
 
     def _setup(self, scenario):
@@ -220,6 +221,11 @@ class ScenarioManager:
     def stop_scenario(self):
         self._stageEventListener._stop()
 
+    @property 
+    def scenario(self):
+        return self._scenario
+
+    @scenario.setter
     def set_scenario(self, scenario):
         self.stop_scenario()
         self._setup(scenario)

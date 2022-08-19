@@ -26,9 +26,6 @@ class PathTrackingExtension(omni.ext.IExt):
         self._ui = None
         self._model.teardown()
         self._model = None
-        if hasattr(self, '_viewport_ui') and self._viewport_ui is not None:
-            self._viewport_ui.teardown()
-            self._viewport_ui = None
 
     # ==========================================================================
     # Callbacks
