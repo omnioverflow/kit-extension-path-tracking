@@ -19,18 +19,17 @@ class ExtensionModel:
         # Conventionally Y-up is often used in graphics, including Kit-apps.
         # TODO: refactor impl to avoid breaking things when changing up-axis settings.
         self._up_axis = "Y"
-        self._vehicle_paths = []
-        self._trajectory_paths = []
+        self._vehicle_to_curve_attachments = {}
         self._scenario_managers = []
+        self._dirty = False
         # Enables debug overlay with additional info regarding current vehicle state.
         self._enable_debug=False
 
     def teardown(self):
-        for manager in self._scenario_managers:
-            manager.stop_scenario()
+        self.stop_scenarios()
         self._scenario_managers = None
 
-    def attach_vehicle_to_curve(self, selected_paths):
+    def attach_vehicle_to_curve(self, wizard_vehicle_path, curve_path):
         """
         Links a vehicle prim (must be WizardVehicle Xform) to the path (BasisCurve)
         to be tracked by the vechile.
@@ -40,45 +39,47 @@ class ExtensionModel:
         # - BasisCurve (corresponding curve/trajectory the vehicle must track)
 
         """
-        if len(selected_paths) == 2:
-            stage = omni.usd.get_context().get_stage()
-            prim0 = stage.GetPrimAtPath(selected_paths[0])
-            prim1 = stage.GetPrimAtPath(selected_paths[1])
-            if prim0.IsA(UsdGeom.BasisCurves):
-                # Fix order of selected prims: WizardVehicle should be first
-                prim0, prim1 = prim1, prim0
-                selected_paths[0], selected_paths[1] = selected_paths[1], selected_paths[0]
-            if prim0.IsA(UsdGeom.Xformable):
-                self._vehicle_paths.append(selected_paths[0] + "/Vehicle")
-                self._trajectory_paths.append(selected_paths[1])
+        stage = omni.usd.get_context().get_stage()
+        prim0 = stage.GetPrimAtPath(wizard_vehicle_path)
+        prim1 = stage.GetPrimAtPath(curve_path)
+        if prim0.IsA(UsdGeom.BasisCurves):
+            # Fix order of selected prims: WizardVehicle should be first
+            prim0, prim1 = prim1, prim0
+            wizard_vehicle_path, curve_path = curve_path, wizard_vehicle_path
+        if prim0.IsA(UsdGeom.Xformable):
+            key = wizard_vehicle_path + "/Vehicle"
+            self._vehicle_to_curve_attachments[key] = curve_path
+        self._dirty = True
 
     def clear_attachments(self):
         """
         Removes previously added path tracking attachments.
         """
-        self._vehicle_paths.clear()
-        self._trajectory_paths.clear()
+        self._vehicle_to_curve_attachments.clear()
+
+    def stop_scenarios(self):
+        for manager in self._scenario_managers:
+            manager.stop_scenario()
 
     def load_simulation(self):
         """
         Load scenarios with vehicle-to-curve attachments. 
         Note that multiple vehicles could run at the same time. 
         """
-        vehicle_count = len(self._vehicle_paths)
-        trajectory_count = len(self._trajectory_paths)
-        scenario_count = len(self._scenario_managers)
-        assert(vehicle_count == trajectory_count)
+        if self._dirty:
+            self.stop_scenarios()
+            self._scenario_managers = []
 
-        if scenario_count < vehicle_count:
-            for i in range(scenario_count, vehicle_count):
+            for vehicle_path in self._vehicle_to_curve_attachments:
                 scenario = TrajectoryScenario(
-                    self._vehicle_paths[i],
-                    self._trajectory_paths[i],
+                    vehicle_path,
+                    self._vehicle_to_curve_attachments[vehicle_path],
                     self.METERS_PER_UNIT
                 )
                 scenario.enable_debug(self._enable_debug)
                 scenario_manager = ScenarioManager(scenario)
                 self._scenario_managers.append(scenario_manager)
+            self._dirty = False
 
         self.recompute_trajectories()
 
@@ -126,6 +127,7 @@ class ExtensionModel:
             asset_path=vehicle_usd_path,
             usd_context=usd_context,
         )
+        return vehicle_prim_path
 
     def load_sample_track(self):
         """
@@ -147,16 +149,15 @@ class ExtensionModel:
             usd_context=usd_context,
         )
 
-    def attachment_presets(self):
+    def get_attachment_presets(self, vehicle_path):
         """
         Prim paths for the preset scene with prim paths for vehicle-to-curve
         attachment.
         """
         stage = omni.usd.get_context().get_stage()
-        default_prim = stage.GetDefaultPrim()
-        metadata = default_prim.GetCustomData()
-        # default_prim.SetCustomData()
-        return [
-            "/World/VehicleTemplate/WizardVehicle1",
-            "/World/BasisCurves/BasisCurves"
-        ]
+        vehicle_prim = stage.GetPrimAtPath(vehicle_path)
+        metadata = vehicle_prim.GetCustomData()
+        # Vehicle-to-Curve attachment of the preset is stored in the metadata.
+        attachment_preset = metadata["omni.path_tracking.metadata"]
+        assert(attachment_preset is not None)
+        return attachment_preset

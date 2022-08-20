@@ -32,7 +32,10 @@ class PathTrackingExtension(omni.ext.IExt):
     # ==========================================================================
 
     def _on_click_start_scenario(self):
-        self._model.load_simulation()    
+        timeline = omni.timeline.get_timeline_interface()
+        if timeline.is_playing():
+            timeline.stop()
+        self._model.load_simulation()
         omni.timeline.get_timeline_interface().play()
 
     def _on_click_load_sample_vehicle(self):
@@ -46,7 +49,8 @@ class PathTrackingExtension(omni.ext.IExt):
 
     def _on_click_attach_selected(self):
         selected = omni.usd.get_context().get_selection().get_selected_prim_paths()
-        self._model.attach_vehicle_to_curve(selected)
+        if len(selected) == 2:
+            self._model.attach_vehicle_to_curve(wizard_vehicle_path=selected[0], curve_path=selected[1])
     
     def _on_click_clear_attachments(self):
         self._model.clear_attachments()
@@ -56,9 +60,13 @@ class PathTrackingExtension(omni.ext.IExt):
 
     def _on_click_load_preset_scene(self):
         self._model.load_ground_plane()
-        self._model.load_sample_vehicle()
+        vehicle_prim_path = self._model.load_sample_vehicle()
         self._model.load_sample_track()
-        self._model.attach_vehicle_to_curve(self._model.attachment_presets())
+        vehicle_to_curve = self._model.get_attachment_presets(vehicle_prim_path)
+        self._model.attach_vehicle_to_curve(
+            wizard_vehicle_path=vehicle_to_curve["WizardVehicle"],
+            curve_path=vehicle_to_curve["BasisCurve"]
+        )
 
     def _changed_enable_debug(self, model):
         self._model.set_enable_debug(model.as_bool)
