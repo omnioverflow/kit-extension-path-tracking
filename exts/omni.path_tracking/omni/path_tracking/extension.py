@@ -1,5 +1,8 @@
 import omni.ext
+import omni.kit
 import omni.usd
+
+import asyncio
 
 from .debug_renderer import *
 from .model import ExtensionModel
@@ -32,11 +35,16 @@ class PathTrackingExtension(omni.ext.IExt):
     # ==========================================================================
 
     def _on_click_start_scenario(self):
-        timeline = omni.timeline.get_timeline_interface()
-        if timeline.is_playing():
-            timeline.stop()
-        self._model.load_simulation()
-        omni.timeline.get_timeline_interface().play()
+        async def start_scenario(model):
+            timeline = omni.timeline.get_timeline_interface()
+            if timeline.is_playing():
+                timeline.stop()
+                await omni.kit.app.get_app().next_update_async()
+            model.load_simulation()
+            omni.timeline.get_timeline_interface().play()
+
+        run_loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(start_scenario(self._model), loop=run_loop)
 
     def _on_click_load_sample_vehicle(self):
         self._model.load_sample_vehicle()        
