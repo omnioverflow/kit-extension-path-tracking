@@ -34,9 +34,9 @@ class ExtensionModel:
         Links a vehicle prim (must be WizardVehicle Xform) to the path (BasisCurve)
         to be tracked by the vechile.
         
-        # Currently we expect two prims to be selected:
-        # - WizardVehicle
-        # - BasisCurve (corresponding curve/trajectory the vehicle must track)
+        Currently we expect two prims to be selected:
+        - WizardVehicle
+        - BasisCurve (corresponding curve/trajectory the vehicle must track)
 
         """
         stage = omni.usd.get_context().get_stage()
@@ -50,6 +50,28 @@ class ExtensionModel:
             key = wizard_vehicle_path + "/Vehicle"
             self._vehicle_to_curve_attachments[key] = curve_path
         self._dirty = True
+
+    def attach_selected_prims(self, selected_prim_paths):
+        """
+        Attaches selected prims paths from a stage to be considered as a 
+        vehicle and path to be tracked correspondingly.
+        The selected prim paths should include a WizardVehicle Xform that 
+        represents vehicle, and a BasisCurves that represents tracked path.
+        """
+        if len(selected_prim_paths) == 2:
+            self.attach_vehicle_to_curve(
+                wizard_vehicle_path = selected_prim_paths[0], 
+                curve_path = selected_prim_paths[1]
+            )
+
+    def attach_preset_metadata(self, metadata):
+        """
+        Does vehicle-to-curve attachment from the metadata dictionary directly.
+        """
+        self.attach_vehicle_to_curve(
+            wizard_vehicle_path = metadata["WizardVehicle"],
+            curve_path = metadata["BasisCurve"]
+        )
 
     def clear_attachments(self):
         """
@@ -148,6 +170,13 @@ class ExtensionModel:
             asset_path=basis_curve_usd_path,
             usd_context=usd_context,
         )
+
+    def load_preset_scene(self):
+        self.load_ground_plane()
+        vehicle_prim_path = self.load_sample_vehicle()
+        self.load_sample_track()
+        metadata_vehicle_to_curve = self.get_attachment_presets(vehicle_prim_path)
+        self.attach_preset_metadata(metadata_vehicle_to_curve)
 
     def get_attachment_presets(self, vehicle_path):
         """
