@@ -17,6 +17,10 @@ from .ui import *
 class PathTrackingExtension(omni.ext.IExt):
 
     def on_startup(self, ext_id):
+        if omni.usd.get_context().get_stage() is None:
+            # Workaround for running within test environment.
+            omni.usd.get_context().new_stage()
+
         self._ui = ExtensionUI(self)
         self._ui.build_ui()
         self._model = ExtensionModel(ext_id)
@@ -26,7 +30,7 @@ class PathTrackingExtension(omni.ext.IExt):
         if timeline.is_playing():
             timeline.stop()
         self._ui.teardown()
-        self._ui = None
+        self._ui = None    
         self._model.teardown()
         self._model = None
 

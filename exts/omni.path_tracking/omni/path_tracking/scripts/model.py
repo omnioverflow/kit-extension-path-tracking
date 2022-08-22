@@ -172,6 +172,15 @@ class ExtensionModel:
         )
 
     def load_preset_scene(self):
+        default_prim_path = "/World"
+        stage = omni.usd.get_context().get_stage()
+        if not stage.GetPrimAtPath(default_prim_path):
+            omni.kit.commands.execute(
+                "CreatePrim", prim_path=default_prim_path,
+                prim_type="Xform", select_new_prim=True, attributes={}
+            )
+            stage.SetDefaultPrim(stage.GetPrimAtPath(default_prim_path))
+
         self.load_ground_plane()
         vehicle_prim_path = self.load_sample_vehicle()
         self.load_sample_track()
