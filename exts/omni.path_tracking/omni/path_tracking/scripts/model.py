@@ -1,7 +1,7 @@
 import omni
 from pxr import UsdGeom
 from .stepper import *
-from .trajectory_scenario import TrajectoryScenario
+from .pure_pursuit import PurePursuitScenario
 from .utils import Utils
 
 # ==============================================================================
@@ -11,8 +11,9 @@ from .utils import Utils
 # ==============================================================================
 
 class ExtensionModel:
-    def __init__(self, extension_id):
+    def __init__(self, extension_id, default_lookahead_distance):
         self._ext_id = extension_id
+        self.lookahead_distance = default_lookahead_distance
         self.METERS_PER_UNIT = 0.01
         UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.METERS_PER_UNIT)
         # Currently the extension expects Y-axis to be up-axis.
@@ -80,10 +81,13 @@ class ExtensionModel:
         self._vehicle_to_curve_attachments.clear()
 
     def stop_scenarios(self):
+        """
+        Stops path tracking scenarios.
+        """
         for manager in self._scenario_managers:
             manager.stop_scenario()
 
-    def load_simulation(self):
+    def load_simulation(self, lookahead_distance):
         """
         Load scenarios with vehicle-to-curve attachments. 
         Note that multiple vehicles could run at the same time. 
@@ -93,7 +97,8 @@ class ExtensionModel:
             self._scenario_managers = []
 
             for vehicle_path in self._vehicle_to_curve_attachments:
-                scenario = TrajectoryScenario(
+                scenario = PurePursuitScenario(
+                    lookahead_distance,
                     vehicle_path,
                     self._vehicle_to_curve_attachments[vehicle_path],
                     self.METERS_PER_UNIT
@@ -172,6 +177,10 @@ class ExtensionModel:
         )
 
     def load_preset_scene(self):
+        """
+        Loads a preset scene with vehicle template and predefined curve for
+        path tracking.
+        """
         default_prim_path = "/World"
         stage = omni.usd.get_context().get_stage()
         if not stage.GetPrimAtPath(default_prim_path):
@@ -199,3 +208,7 @@ class ExtensionModel:
         attachment_preset = metadata["omni.path_tracking.metadata"]
         assert(attachment_preset is not None)
         return attachment_preset
+
+    def update_lookahead_distance(self, distance):
+        for scenario_manager in self._scenario_managers:
+            scenario_manager.scenario.set_lookahead_distance(distance)

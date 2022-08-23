@@ -6,7 +6,6 @@ import asyncio
 
 from .debug_renderer import *
 from .model import ExtensionModel
-from .path_tracking import *
 from .ui import *
 
 # ==============================================================================
@@ -14,16 +13,22 @@ from .ui import *
 # PathTrackingExtension
 # 
 # ==============================================================================
+
 class PathTrackingExtension(omni.ext.IExt):
+
+    def __init__(self):
+        self._DEFAULT_LOOKAHEAD = 400.0
+        self._MIN_LOOKAHEAD = 100.0
+        self._MAX_LOOKAHEAD = 1000.0
 
     def on_startup(self, ext_id):
         if omni.usd.get_context().get_stage() is None:
             # Workaround for running within test environment.
             omni.usd.get_context().new_stage()
 
+        self._model = ExtensionModel(ext_id, default_lookahead_distance=self._DEFAULT_LOOKAHEAD)
         self._ui = ExtensionUI(self)
-        self._ui.build_ui()
-        self._model = ExtensionModel(ext_id)
+        self._ui.build_ui(self._model.lookahead_distance)
 
     def on_shutdown(self):
         timeline = omni.timeline.get_timeline_interface()
@@ -44,7 +49,8 @@ class PathTrackingExtension(omni.ext.IExt):
             if timeline.is_playing():
                 timeline.stop()
                 await omni.kit.app.get_app().next_update_async()
-            model.load_simulation()
+            lookahead_distance = self._ui.get_lookahead_distance()
+            model.load_simulation(lookahead_distance)
             omni.timeline.get_timeline_interface().play()
 
         run_loop = asyncio.get_event_loop()
@@ -74,3 +80,12 @@ class PathTrackingExtension(omni.ext.IExt):
 
     def _changed_enable_debug(self, model):
         self._model.set_enable_debug(model.as_bool)
+
+    def _changed_lookahead_distance(self, distance):
+        if distance < self._MIN_LOOKAHEAD:
+            distance = self._MIN_LOOKAHEAD
+            self._ui.set_lookahead_distance(distance)
+        elif distance > self._MAX_LOOKAHEAD:
+            distance = self._MAX_LOOKAHEAD
+            self._ui.set_lookahead_distance(distance)
+        self._model.update_lookahead_distance(distance)

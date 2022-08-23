@@ -1,8 +1,13 @@
-import carb
 import omni.usd
-from omni.debugdraw import get_debug_draw_interface
+import carb
 from pxr import Gf, UsdGeom
-from .simple_scenario import SimpleScenario
+
+import math
+
+from .debug_renderer import DebugRenderer
+from .path_tracker import PurePursuitPathTracker
+from .stepper import Scenario
+from .vehicle import Axle, Vehicle
 
 # ==============================================================================
 # 
@@ -90,22 +95,110 @@ class Trajectory():
             )
 
 # ==============================================================================
-# 
-# TrajectoryScenario
-# 
+#
+# PurePursuitScenario
+#
 # ==============================================================================
-class TrajectoryScenario(SimpleScenario):
-    """
-    Scenario for vehicle path tracking.
-    """
+class PurePursuitScenario(Scenario):
+    def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit):
+        super().__init__(secondsToRun=10000.0, timeStep=1.0/25.0)
 
-    def __init__(self, vehicle_path, trajectory_prim_path, meters_per_unit, viewport_ui=None):
-        super().__init__(viewport_ui, meters_per_unit, vehicle_path, destination=False)
+        self._lookahead_distance = lookahead_distance
+        self._METERS_PER_UNIT = meters_per_unit
+        self._max_speed = 250.0
+
+        self._stage = omni.usd.get_context().get_stage()
+        self._vehicle = Vehicle(self._stage.GetPrimAtPath(vehicle_path))
+        self._debug_render = DebugRenderer()
+        self._path_tracker = PurePursuitPathTracker(math.pi / 4)
+
         self._dest = None
         self._trajectory_prim_path = trajectory_prim_path
         self._trajectory = Trajectory(trajectory_prim_path)
         self._stopped = False
         self.draw_track = False
+    
+    def on_start(self):
+        self._vehicle.accelerate(1.0)
+
+    def on_end(self):
+        self._trajectory.reset()
+
+    def _process(self, forward, up, dest_position, distance=None, is_close_to_dest=False):
+        """
+        Steering/accleleration vehicle control heuristic.
+        """
+        if (distance is None):
+            distance, is_close_to_dest = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
+        curr_vehicle_pos = self._vehicle.curr_position()
+
+        self._debug_render.update_vehicle(self._vehicle)
+        self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
+
+        # FIXME: - currently the extension expect Y-up axis which is not flexible.
+        # Project onto XZ plane
+        curr_vehicle_pos[1] = 0.0
+        forward[1] = 0.0
+        dest_position[1] = 0.0
+
+        speed = self._vehicle.get_speed() * self._METERS_PER_UNIT
+        axle_front = Gf.Vec3f(self._vehicle.axle_position(Axle.FRONT))        
+        axle_rear = Gf.Vec3f(self._vehicle.axle_position(Axle.REAR))
+        axle_front[1] = 0.0
+        axle_rear[1] = 0.0
+
+        # self._debug_render.update_path_tracking(axle_front, axle_rear, forward, dest_position)
+
+        steer_angle = self._path_tracker.on_step(
+            axle_front,
+            axle_rear,
+            forward,
+            dest_position,
+            curr_vehicle_pos
+        )
+
+        if steer_angle < 0:
+            self._vehicle.steer_left(abs(steer_angle))
+        else:
+            self._vehicle.steer_right(steer_angle)
+        # Accelerate/break control heuristic
+        if abs(steer_angle) > 0.1 and speed > 5.0:
+            self._vehicle.brake(1.0)
+            self._vehicle.accelerate(0.0)
+        else:
+            if (speed >= self._max_speed):
+                self._vehicle.brake(0.8)
+                self._vehicle.accelerate(0.0)
+            else:
+                self._vehicle.brake(0.0)
+                self._vehicle.accelerate(0.7)
+
+    def _full_stop(self):
+        self._vehicle.accelerate(0.0)
+        self._vehicle.brake(1.0)
+
+    def on_step(self, deltaTime, totalTime):
+        R = self._vehicle.rotation_matrix()
+        forward = self._vehicle.forward()
+        up = self._vehicle.up()
+
+        dest_position = self._dest.position()
+        self._process(forward, up, dest_position)
+
+    def set_meters_per_unit(self, value):
+        self._METERS_PER_UNIT = value
+
+    def teardown(self):
+        super().abort()
+        self._dest.teardown()
+        self._dest = None
+        self._stage = None
+        self._vehicle = None
+        self._debug_render = None
+        self._path_tracker = None
+
+    def enable_debug(self, flag):
+        self._debug_render.enable(flag)
 
     def on_step(self, deltaTime, totalTime):
         """
@@ -121,7 +214,7 @@ class TrajectoryScenario(SimpleScenario):
         is_end_point = self._trajectory.is_at_end_point()
         # Run vehicle control unless reached the destination
         if dest_position:
-            distance, is_close_to_dest = self._vehicle_is_close_to(dest_position, is_end_point)
+            distance, is_close_to_dest = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
             if (is_close_to_dest):
                 dest_position = self._trajectory.next_point()                
             else:
@@ -129,13 +222,10 @@ class TrajectoryScenario(SimpleScenario):
                 self._process(forward, up, dest_position, distance, is_close_to_dest)
         else:
             self._stopped = True
-            self._full_stop()            
-
-    def on_end(self):
-        self._trajectory.reset()
-
-    def teardown(self):
-        super().teardown()
+            self._full_stop()
 
     def recompute_trajectory(self):
         self._trajectory = Trajectory(self._trajectory_prim_path)
+
+    def set_lookahead_distance(self, distance):
+        self._lookahead_distance = distance

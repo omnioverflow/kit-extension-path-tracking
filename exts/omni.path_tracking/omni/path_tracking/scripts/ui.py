@@ -3,21 +3,53 @@ import omni.ui as ui
 DEFAULT_BTN_HEIGHT = 22
 COLLAPSABLE_FRAME_HEIGHT = 32
 LINE_HEIGHT = 32
+LABEL_WIDTH = 150
+LABEL_INNER_WIDTH = 70
+ELEM_MARGIN = 4
+BTN_WIDTH = 32
+VSPACING = ELEM_MARGIN * 2
+BORDER_RADIUS = 4
+
+CollapsableFrameStyle = {
+    "CollapsableFrame": {
+        "background_color": 0xFF333333,
+        "secondary_color": 0xFF333333,
+        "color": 0xFFFFFFFF,
+        "border_radius": BORDER_RADIUS,
+        "border_color": 0x0,
+        "border_width": 0,
+        "font_size": 14,
+        "padding": ELEM_MARGIN * 2,
+        "margin_width": ELEM_MARGIN,
+        "margin_height": ELEM_MARGIN,
+    },
+    "CollapsableFrame:hovered": {"secondary_color": 0xFF3C3C3C},
+    "CollapsableFrame:pressed": {"secondary_color": 0xFF333333},
+    "Button": {"margin_height": 0, "margin_width": ELEM_MARGIN, "border_radius": BORDER_RADIUS},
+    "Button:selected": {"background_color": 0xFF666666},
+    "Button.Label:disabled": {"color": 0xFF888888},
+    "Slider": {"margin_height": 0, "margin_width": ELEM_MARGIN, "border_radius": BORDER_RADIUS},
+    "Slider:disabled": {"color": 0xFF888888},
+    "ComboBox": {"margin_height": 0, "margin_width": ELEM_MARGIN, "border_radius": BORDER_RADIUS},
+    "Label": {"margin_height": 0, "margin_width": ELEM_MARGIN},
+    "Label:disabled": {"color": 0xFF888888},
+}
+
 
 class ExtensionUI():
     
     def __init__(self, controller):
         self._controller = controller
 
-    def build_ui(self):
-        self._viewport_ui = None
-        # self._viewport_ui = ViewportUI()
-        # self._viewport_ui.build_viewport()
-        
+    def build_ui(self, lookahead_distance):
         self._window = ui.Window("Vehicle Path Tracking Extension", width=300, height=300)
         with self._window.frame:
             with ui.VStack():
-                self._settings_frame = ui.CollapsableFrame("SETTINGS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
+                self._settings_frame = ui.CollapsableFrame(
+                    "SETTINGS", collapsed=False,
+                    height=COLLAPSABLE_FRAME_HEIGHT,
+                    style=CollapsableFrameStyle
+                )
                 with self._settings_frame:
                     with ui.VStack():
                         width = 64
@@ -29,9 +61,16 @@ class ExtensionUI():
                                 self._controller._changed_enable_debug
                             )
                         ui.Spacer(height=LINE_HEIGHT/4)
+                        ui.Label("REFERENCE COORDINATE SYSTEM")
                         with ui.HStack(width=width, height=height):
                             ui.Label("Up-axis: Y-axis (fixed)")
                         ui.Spacer(height=LINE_HEIGHT/4)
+                        ui.Label("PURE PURSUIT ALGORITHM")
+                        with ui.HStack(width=width, height=height):
+                            ui.Label("Look ahead distance: ")
+                            self._lookahead_field = ui.FloatField(width=64.0)
+                            self._lookahead_field.model.set_value(lookahead_distance)
+                            self._lookahead_field.model.add_end_edit_fn(self._submit_lookahead_distance)
 
                 self._controls_frame = ui.CollapsableFrame("CONTROLS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT)
                 with self._controls_frame:
@@ -96,46 +135,11 @@ class ExtensionUI():
         self._atachments_frame = None
         self._window = None
 
-# ==============================================================================
-# Additional Optional UI overlay on Viewport itself.
-# ==============================================================================
-class ViewportUI:
-    def __init__(self):
-        self._vehicle_velocity_label = None
-        self._vehicle_speed_label = None
-        self._steer_angle_label = None
-        self._distance_label = None
+    def get_lookahead_distance(self):
+        return self._lookahead_field.model.as_float
 
-    def build_viewport(self):
-        window = ui.Workspace.get_window("Viewport")
-        with window.frame:
-            with ui.ZStack():
-                ui.Rectangle(width=480, height=200, style={"background_color": 0xAA444444})
-                with ui.VStack(width=50, height=100, style={"margin": 20, "padding": 20}):
-                    label_style = {"font_size" : 24, "margin_height": 10}
-                    self._vehicle_velocity_label = ui.Label("(0.0, 0.0, 0.0)", style=label_style)
-                    self._vehicle_speed_label = ui.Label("0 kmh", style=label_style)
-                    self._steer_angle_label = ui.Label("0.0", style=label_style)
-                    self._distance_label = ui.Label("", style=label_style)
+    def set_lookahead_distance(self, distance):
+        self._lookahead_field.model.set_value(distance)
 
-    def teardown(self):
-        self._vehicle_velocity_label = None
-        self._vehicle_speed_label = None
-        self._steer_angle_label = None
-        self._distance_label = None
-        # Clear viewport
-        frame = ui.Workspace.get_window("Viewport").frame
-        frame.clear()
-        frame.rebuild()
-    
-    def set_vehicle_velocity(self, value):
-        self._vehicle_velocity_label.text = f"Velocity vector: ({value[0]:9.2f}, {value[1]:9.2f}, {value[2]:9.2f})"
-
-    def set_vehicle_speed(self, value):
-        self._vehicle_speed_label.text = f"Speed: {value:9.2f} km/h"
-
-    def set_steer_angle(self, value):
-        self._steer_angle_label.text = f"Steer control: {value:9.3f}"
-
-    def set_distance_label(self, value):
-        self._distance_label.text = f"Distance: {value:9.3f}m"
+    def _submit_lookahead_distance(self, model):
+        self._controller._changed_lookahead_distance(model.as_float)

@@ -2,6 +2,8 @@ import omni.usd
 from enum import IntEnum
 from pxr import Gf
 
+import numpy as np
+
 # ==============================================================================
 # Vehicle
 # ==============================================================================
@@ -51,7 +53,10 @@ class Vehicle():
         self._prim.GetAttribute("physxVehicleController:brake").Set(value)
 
     def get_velocity(self):
-        return self._prim.GetAttribute("physics:velocity").Get()  
+        return self._prim.GetAttribute("physics:velocity").Get()
+
+    def get_speed(self):
+        return np.linalg.norm(self.get_velocity())
 
     def curr_position(self):
         return self._vehicle().GetAttribute("xformOp:translate").Get()
@@ -132,3 +137,12 @@ class Vehicle():
 
     def _vehicle(self):
         return self._stage.GetPrimAtPath(self._path)
+
+    def is_close_to(self, point, lookahead_distance):
+        if not point:
+            raise Exception("[Vehicle] Point is None")
+        curr_vehicle_pos = self.curr_position()
+        if not curr_vehicle_pos:
+            raise Exception("[Vechicle] Current position is None")
+        distance = np.linalg.norm(curr_vehicle_pos - point)
+        return tuple([distance, distance < lookahead_distance])
