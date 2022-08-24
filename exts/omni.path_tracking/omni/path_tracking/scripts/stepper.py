@@ -103,7 +103,7 @@ class SimStepTracker:
 
     def _on_physics_step(self, dt):
         if self._hasStarted:
-            # print(f"step: {self._iterationCount}\n")
+            pass
 
             if self._iterationCount < self._targetIterationCount:
                 self._scenario.on_step(dt, self._totalTime)
@@ -143,8 +143,8 @@ class StageEventListener:
                 omni.timeline.get_timeline_interface().play()
         elif event.type == int(omni.usd.StageEventType.SIMULATION_START_PLAY):
             self.restart_after_stop = False
-        # elif event.type == int(omni.usd.StageEventType.ANIMATION_STOP_PLAY):
-        #     print("[StageEventListener] omni.usd.StageEventType.ANIMATION_STOP_PLAY")
+        elif event.type == int(omni.usd.StageEventType.ANIMATION_STOP_PLAY):
+            pass
     
     def _stop(self, stageIsClosing=False):
         self._stageIsClosing = stageIsClosing
@@ -163,63 +163,15 @@ class ScenarioManager:
     def _setup(self, scenario):
         self._init_done = False
         scenarioDoneSignal = threading.Event()
-        simStepTracker = SimStepTracker(scenario, scenarioDoneSignal)
-        self._stageEventListener = StageEventListener(simStepTracker)
-
-    def _run_scenario_internal(self, scenario, resetAtEnd):
-        scenarioDoneSignal = threading.Event()
-        simStepTracker = SimStepTracker(scenario, scenarioDoneSignal)
-        self._stageEventListener = StageEventListener(simStepTracker)
-
-        timeline = omni.timeline.get_timeline_interface()
-        timeline.play()
-
-        while True:
-            scenarioDoneSignal.wait()
-            scenarioDoneSignal.clear()
-
-            if self._stageEventListener.is_stage_closing():
-                timeline.stop()
-                break
-            else:
-                # scenario has finished -> stop or pause. Pressing play after that should restart the scenario
-                if resetAtEnd:
-                    timeline.stop()
-                else:
-                    timeline.pause()
-                    simStepTracker.reset_on_next_resume()
-
-        self._stageEventListener.cleanup()
-        del self._stageEventListener
-        del simStepTracker
-
-    def run_scenario(self):
-        timeline = omni.timeline.get_timeline_interface()
-        if (timeline.is_playing()):
-            # Request restart and then stop the timeline. 
-            # In such case, when the timeline is going to be stopped (asynchronously),
-            # it will be automatically restarted in the event listener.
-            self._stageEventListener.restart_after_stop = True
-            timeline.stop()
-        else:
-            timeline.play()
-        # else:
-        #     self._init_done = True
-        #     omni.timeline.get_timeline_interface().play()
-
-    def run_scenario_force_play(self):
-        timeline = omni.timeline.get_timeline_interface()
-        if (timeline.is_playing()):
-            # Request restart and then stop the timeline. 
-            # In such case, when the timeline is going to be stopped (asynchronously),
-            # it will be automatically restarted in the event listener.
-            self._stageEventListener.restart_after_stop = True
-            timeline.stop()
-        # force play
-        timeline.play()
+        self._simStepTracker = SimStepTracker(scenario, scenarioDoneSignal)
+        self._stageEventListener = StageEventListener(self._simStepTracker)
 
     def stop_scenario(self):
         self._stageEventListener._stop()
+
+    def cleanup(self):
+        self._stageEventListener.cleanup()
+        self._simStepTracker.abort()
 
     @property 
     def scenario(self):

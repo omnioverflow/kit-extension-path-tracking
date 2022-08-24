@@ -1,7 +1,7 @@
 import omni
 from pxr import UsdGeom
 from .stepper import *
-from .pure_pursuit import PurePursuitScenario
+from .path_tracker import PurePursuitScenario
 from .utils import Utils
 
 # ==============================================================================
@@ -78,6 +78,11 @@ class ExtensionModel:
         """
         Removes previously added path tracking attachments.
         """
+        self.stop_scenarios()
+        for manager in self._scenario_managers:
+            manager.cleanup()
+        self._scenario_managers.clear()
+        self._dirty = True
         self._vehicle_to_curve_attachments.clear()
 
     def stop_scenarios(self):
@@ -210,5 +215,6 @@ class ExtensionModel:
         return attachment_preset
 
     def update_lookahead_distance(self, distance):
+        """Updates the lookahead distance parameter for pure pursuit"""
         for scenario_manager in self._scenario_managers:
             scenario_manager.scenario.set_lookahead_distance(distance)
