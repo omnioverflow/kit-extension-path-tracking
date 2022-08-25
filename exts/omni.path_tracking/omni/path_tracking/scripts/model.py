@@ -9,11 +9,13 @@ from .utils import Utils
 # ExtensionModel
 # 
 # ==============================================================================
-
 class ExtensionModel:
-    def __init__(self, extension_id, default_lookahead_distance):
+
+    def __init__(self, extension_id, default_lookahead_distance, max_lookahed_distance, min_lookahed_distance):
         self._ext_id = extension_id
-        self.lookahead_distance = default_lookahead_distance
+        self._lookahead_distance = default_lookahead_distance
+        self._min_lookahead_distance = min_lookahed_distance
+        self._max_lookahead_distance = max_lookahed_distance
         self.METERS_PER_UNIT = 0.01
         UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.METERS_PER_UNIT)
         # Currently the extension expects Y-axis to be up-axis.
@@ -73,16 +75,19 @@ class ExtensionModel:
             wizard_vehicle_path = metadata["WizardVehicle"],
             curve_path = metadata["BasisCurve"]
         )
-
-    def clear_attachments(self):
-        """
-        Removes previously added path tracking attachments.
-        """
+    def _cleanup_scenario_managers(self):
+        """Cleans up scenario managers. Often useful when tracked data becomes obsolete."""
         self.stop_scenarios()
         for manager in self._scenario_managers:
             manager.cleanup()
         self._scenario_managers.clear()
         self._dirty = True
+
+    def clear_attachments(self):
+        """
+        Removes previously added path tracking attachments.
+        """
+        self._cleanup_scenario_managers()
         self._vehicle_to_curve_attachments.clear()
 
     def stop_scenarios(self):
@@ -98,8 +103,7 @@ class ExtensionModel:
         Note that multiple vehicles could run at the same time. 
         """
         if self._dirty:
-            self.stop_scenarios()
-            self._scenario_managers = []
+            self._cleanup_scenario_managers()
 
             for vehicle_path in self._vehicle_to_curve_attachments:
                 scenario = PurePursuitScenario(
@@ -214,7 +218,18 @@ class ExtensionModel:
         assert(attachment_preset is not None)
         return attachment_preset
 
+    def get_lookahead_distance(self):
+        return self._lookahead_distance
+
     def update_lookahead_distance(self, distance):
         """Updates the lookahead distance parameter for pure pursuit"""
+
+        clamped_distance = max(
+            self._min_lookahead_distance,
+            min(self._max_lookahead_distance, distance)
+        )
+
         for scenario_manager in self._scenario_managers:
-            scenario_manager.scenario.set_lookahead_distance(distance)
+            scenario_manager.scenario.set_lookahead_distance(clamped_distance)
+
+        return clamped_distance

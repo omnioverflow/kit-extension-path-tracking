@@ -59,9 +59,7 @@ class AttachmentModel(ui.AbstractItemModel):
 
     def __init__(self, items: List[object]):
         super().__init__()
-        self._attachments = []
-        for item in items:
-            self._attachments.append(AttachedItem(item))
+        self.attachments_changed(items)
 
     def get_item_children(self, item):
         """Returns all the children when the widget asks it."""
@@ -87,8 +85,10 @@ class AttachmentModel(ui.AbstractItemModel):
 
     def attachments_changed(self, attachments):
         self._attachments = []
+        i = 1
         for attachment in attachments:
-            self._attachments.append(AttachedItem(attachment))
+            self._attachments.append(AttachedItem(f"[{i}] {attachment}"))
+            i = i + 1
         self._item_changed(None)
 
 class ExtensionUI():
@@ -218,7 +218,7 @@ class ExtensionUI():
         self._lookahead_field.model.set_value(distance)
 
     def _notify_lookahead_distance_changed(self, model):
-        self._controller.set_lookahead_distance(model.as_float)
+        self._controller._on_lookahead_distance_changed(model.as_float)
 
     def update_attachment_info(self, attachments):
         self._attachment_model.attachments_changed(attachments)

@@ -1,6 +1,6 @@
 import omni.usd
 from enum import IntEnum
-from pxr import Gf, UsdGeom
+from pxr import Gf, Usd, UsdGeom
 
 import numpy as np
 
@@ -39,6 +39,12 @@ class Vehicle():
         }
         p = self._prim.GetAttribute("xformOp:translate").Get()
         self._p = Gf.Vec4f(p[0], p[1], p[2], 1.0)
+
+    def get_bbox_size(self):
+        """Computes size of vehicle's oriented bounding box."""
+        purposes = [UsdGeom.Tokens.default_]
+        bbox_cache = UsdGeom.BBoxCache(Usd.TimeCode.Default(), purposes)
+        return bbox_cache.ComputeWorldBound(self._prim).ComputeAlignedRange().GetSize()
 
     def steer_left(self, value):
         self._prim.GetAttribute("physxVehicleController:steerLeft").Set(value)

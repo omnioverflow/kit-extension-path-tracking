@@ -24,7 +24,7 @@ class PurePursuitScenario(Scenario):
 
         self._stage = omni.usd.get_context().get_stage()
         self._vehicle = Vehicle(self._stage.GetPrimAtPath(vehicle_path))
-        self._debug_render = DebugRenderer()
+        self._debug_render = DebugRenderer(self._vehicle.get_bbox_size())
         self._path_tracker = PurePursuitPathTracker(math.pi / 4)
 
         self._dest = None

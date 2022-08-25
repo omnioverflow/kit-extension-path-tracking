@@ -2,6 +2,7 @@ import omni.ext
 import omni.kit
 import omni.usd
 import carb
+from pxr import Tf, Usd
 
 import asyncio
 
@@ -26,19 +27,30 @@ class PathTrackingExtension(omni.ext.IExt):
             # Workaround for running within test environment.
             omni.usd.get_context().new_stage()
 
-        self._stage_subscription = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
+        self._usd_listener = Tf.Notice.Register(Usd.Notice.ObjectsChanged, self._on_usd_change, None)
+        self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self._on_stage_event, name="Stage Open/Closing Listening"
         )
 
-        self._model = ExtensionModel(ext_id, default_lookahead_distance=self._DEFAULT_LOOKAHEAD)
+        self._model = ExtensionModel(
+            ext_id, 
+            default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
+            max_lookahed_distance=self._MAX_LOOKAHEAD,
+            min_lookahed_distance=self._MIN_LOOKAHEAD
+        )
         self._ui = ExtensionUI(self)
-        self._ui.build_ui(self._model.lookahead_distance, attachments=[])
+        self._ui.build_ui(self._model.get_lookahead_distance(), attachments=[])
 
     def on_shutdown(self):
         timeline = omni.timeline.get_timeline_interface()
         if timeline.is_playing():
             timeline.stop()
-        self._stage_subscription = None
+
+        self._clear_attachments()
+
+        self._usd_listener = None
+        self._stage_event_sub = None
+
         self._ui.teardown()
         self._ui = None
         self._model.teardown()
@@ -78,7 +90,7 @@ class PathTrackingExtension(omni.ext.IExt):
         self._model.attach_selected_prims(selected_prim_paths)
         self._update_ui()
     
-    def _on_click_clear_attachments(self):
+    def _clear_attachments(self):
         async def stop_scenario():
             timeline = omni.timeline.get_timeline_interface()
             if timeline.is_playing():
@@ -91,6 +103,9 @@ class PathTrackingExtension(omni.ext.IExt):
         self._model.clear_attachments()
         self._update_ui()
 
+    def _on_click_clear_attachments(self):
+        self._clear_attachments()
+
     def _on_click_load_preset_scene(self):
         self._model.load_preset_scene()
         self._update_ui()
@@ -100,15 +115,20 @@ class PathTrackingExtension(omni.ext.IExt):
         if event.type == int(omni.usd.StageEventType.CLOSING):
             self._model.clear_attachments()
             self._update_ui()
+        elif event.type == int(omni.usd.StageEventType.SELECTION_CHANGED):
+            carb.log_info("SELECTION_CHANGED")
+        # else:
+            # carb.log_info(f"{event} " + str(int(event.type)) + f" event.type")
+
+    def _on_usd_change(self, objects_changed, stage):
+        carb.log_info(f"_on_usd_change")
+        for resync_path in objects_changed.GetResyncedPaths():
+            print(resync_path)
 
     def _changed_enable_debug(self, model):
         self._model.set_enable_debug(model.as_bool)
 
-    def set_lookahead_distance(self, distance):
-        if distance < self._MIN_LOOKAHEAD:
-            distance = self._MIN_LOOKAHEAD
-            self._ui.set_lookahead_distance(distance)
-        elif distance > self._MAX_LOOKAHEAD:
-            distance = self._MAX_LOOKAHEAD
-            self._ui.set_lookahead_distance(distance)
-        self._model.update_lookahead_distance(distance)
+    def _on_lookahead_distance_changed(self, distance):
+        # self._clear_attachments()
+        clamped_lookahead_distance = self._model.update_lookahead_distance(distance)
+        self._ui.set_lookahead_distance(clamped_lookahead_distance)
