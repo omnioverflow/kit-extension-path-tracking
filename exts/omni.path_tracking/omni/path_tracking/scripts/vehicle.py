@@ -1,6 +1,6 @@
 import omni.usd
 from enum import IntEnum
-from pxr import Gf
+from pxr import Gf, UsdGeom
 
 import numpy as np
 
@@ -37,6 +37,8 @@ class Vehicle():
             Wheel.REAR_RIGHT :
                 self._stage.GetPrimAtPath(f"{self._path}/RightWheel2References")
         }
+        p = self._prim.GetAttribute("xformOp:translate").Get()
+        self._p = Gf.Vec4f(p[0], p[1], p[2], 1.0)
 
     def steer_left(self, value):
         self._prim.GetAttribute("physxVehicleController:steerLeft").Set(value)
@@ -59,7 +61,12 @@ class Vehicle():
         return np.linalg.norm(self.get_velocity())
 
     def curr_position(self):
-        return self._vehicle().GetAttribute("xformOp:translate").Get()
+        prim = self._vehicle()
+        
+        cache = UsdGeom.XformCache()
+        T = cache.GetLocalToWorldTransform(prim)
+        p = self._p * T
+        return Gf.Vec3f(p[0], p[1], p[2])
 
     def axle_front(self):
         return self.axle_position(Axle.FRONT)
@@ -68,27 +75,31 @@ class Vehicle():
         return self.axle_position(Axle.REAR)
 
     def axle_position(self, type):
-        R = self.rotation_matrix()
-        curr_pos = self.curr_position()
+        cache = UsdGeom.XformCache()
+        T = cache.GetLocalToWorldTransform(self._vehicle())
         if type == Axle.FRONT:
             wheel_fl = self._wheel_prims[Wheel.FRONT_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_fr = self._wheel_prims[Wheel.FRONT_RIGHT].GetAttribute("xformOp:translate").Get()
             wheel_fl[1]=0.0
             wheel_fr[1]=0.0
-            wheel_fl = Gf.Vec4f(wheel_fl[0], wheel_fl[1], wheel_fl[2], 1.0) * R
-            wheel_fr = Gf.Vec4f(wheel_fr[0], wheel_fr[1], wheel_fr[2], 1.0) * R
-            wheel_fl = Gf.Vec3f(wheel_fl[0], wheel_fl[1], wheel_fl[2]) + curr_pos
-            wheel_fr = Gf.Vec3f(wheel_fr[0], wheel_fr[1], wheel_fr[2]) + curr_pos
+            wheel_fl = Gf.Vec4f(wheel_fl[0], wheel_fl[1], wheel_fl[2], 1.0) * T
+            wheel_fr = Gf.Vec4f(wheel_fr[0], wheel_fr[1], wheel_fr[2], 1.0) * T
+
+            wheel_fl = Gf.Vec3f(wheel_fl[0], wheel_fl[1], wheel_fl[2])
+            wheel_fr = Gf.Vec3f(wheel_fr[0], wheel_fr[1], wheel_fr[2])
+
             return (wheel_fl + wheel_fr) / 2
         elif type == Axle.REAR:
             wheel_rl = self._wheel_prims[Wheel.REAR_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_rr = self._wheel_prims[Wheel.REAR_RIGHT].GetAttribute("xformOp:translate").Get()
             wheel_rl[1]=0.0
             wheel_rr[1]=0.0
-            wheel_rl = Gf.Vec4f(wheel_rl[0], wheel_rl[1], wheel_rl[2], 1.0) * R
-            wheel_rr = Gf.Vec4f(wheel_rr[0], wheel_rr[1], wheel_rr[2], 1.0) * R
-            wheel_rl = Gf.Vec3f(wheel_rl[0], wheel_rl[1], wheel_rl[2]) + curr_pos
-            wheel_rr = Gf.Vec3f(wheel_rr[0], wheel_rr[1], wheel_rr[2]) + curr_pos
+            wheel_rl = Gf.Vec4f(wheel_rl[0], wheel_rl[1], wheel_rl[2], 1.0) * T
+            wheel_rr = Gf.Vec4f(wheel_rr[0], wheel_rr[1], wheel_rr[2], 1.0) * T
+
+            wheel_rl = Gf.Vec3f(wheel_rl[0], wheel_rl[1], wheel_rl[2])
+            wheel_rr = Gf.Vec3f(wheel_rr[0], wheel_rr[1], wheel_rr[2])
+
             return (wheel_rl + wheel_rr) / 2
         else:
             return None
@@ -113,11 +124,11 @@ class Vehicle():
 
     def rotation_matrix(self):
         """
-        Sets the matrix to specify a rotation equivalent to orientation (quatd), 
-        and clears the translation.
+        Produces vehicle's local-to-world rotation transform.
         """
-        orient = self._vehicle().GetAttribute("xformOp:orient").Get()
-        return Gf.Matrix4d().SetRotate(orient)
+        cache = UsdGeom.XformCache()
+        T = cache.GetLocalToWorldTransform(self._vehicle())
+        return Gf.Matrix4d(T.ExtractRotationMatrix(), Gf.Vec3d())
 
     def forward(self):
         R = self.rotation_matrix()

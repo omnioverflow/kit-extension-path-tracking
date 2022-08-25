@@ -92,14 +92,6 @@ class PurePursuitScenario(Scenario):
         self._vehicle.accelerate(0.0)
         self._vehicle.brake(1.0)
 
-    def on_step(self, deltaTime, totalTime):
-        R = self._vehicle.rotation_matrix()
-        forward = self._vehicle.forward()
-        up = self._vehicle.up()
-
-        dest_position = self._dest.position()
-        self._process(forward, up, dest_position)
-
     def set_meters_per_unit(self, value):
         self._METERS_PER_UNIT = value
 
@@ -213,29 +205,14 @@ class Trajectory():
         if (basis_curves and basis_curves is not None):
             curve_prim = stage.GetPrimAtPath(prim_path)
             self._points = basis_curves.GetPointsAttr().Get()
-            translation_vec = curve_prim.GetAttribute("xformOp:translate").Get()
-            rotate = curve_prim.GetAttribute("xformOp:rotateXYZ").Get()
-    
-            Rx = Gf.Matrix4d().SetRotate(Gf.Rotation(Gf.Vec3d.XAxis(), rotate[0]))
-            Ry = Gf.Matrix4d().SetRotate(Gf.Rotation(Gf.Vec3d.YAxis(), rotate[1]))
-            Rz = Gf.Matrix4d().SetRotate(Gf.Rotation(Gf.Vec3d.ZAxis(), rotate[2]))
-            carb.log_info(f"Rx {Rx}")
-            carb.log_info(f"Ry {Ry}")
-            carb.log_info(f"Rz {Rz}")
-            R = Rx * Ry * Rz
-            carb.log_info(f"R {R}")
-            T = Gf.Matrix4d().SetTranslate(translation_vec)
             self._num_points = len(self._points)
-            for i in range(self._num_points):
-                carb.log_info(f"translation_vec {translation_vec}")
-                carb.log_info(f"translation_vec type {type(translation_vec)}")
-                carb.log_info(f"before {i}: {self._points[i]}")
-                
-                p = Gf.Vec4d(self._points[i][0], self._points[i][1], self._points[i][2], 1.0)
-                p_ = p * R * T
-                self._points[i] = Gf.Vec3f(p_[0], p_[1], p_[2])
+            cache = UsdGeom.XformCache()
+            T = cache.GetLocalToWorldTransform(curve_prim)
 
-                carb.log_info(f"after {i}: {self._points[i]}")
+            for i in range(self._num_points):
+                p = Gf.Vec4d(self._points[i][0], self._points[i][1], self._points[i][2], 1.0)
+                p_ = p * T
+                self._points[i] = Gf.Vec3f(p_[0], p_[1], p_[2])
         else:
             self._points = None
             self._num_points = 0
