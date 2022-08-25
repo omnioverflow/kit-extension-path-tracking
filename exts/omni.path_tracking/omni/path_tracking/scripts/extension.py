@@ -76,6 +76,16 @@ class PathTrackingExtension(omni.ext.IExt):
         run_loop = asyncio.get_event_loop()
         asyncio.run_coroutine_threadsafe(start_scenario(self._model), loop=run_loop)
 
+    def _on_click_stop_scenario(self):
+        async def stop_scenario():
+            timeline = omni.timeline.get_timeline_interface()
+            if timeline.is_playing():
+                timeline.stop()
+                await omni.kit.app.get_app().next_update_async()
+
+        run_loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(stop_scenario(), loop=run_loop)
+
     def _on_click_load_sample_vehicle(self):
         self._model.load_sample_vehicle()        
 

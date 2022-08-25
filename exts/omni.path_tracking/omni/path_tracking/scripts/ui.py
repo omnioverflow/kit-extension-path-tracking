@@ -16,7 +16,7 @@ CollapsableFrameStyle = {
     "CollapsableFrame": {
         "background_color": 0xFF333333,
         "secondary_color": 0xFF333333,
-        "color": 0xFFFFFFFF,
+        "color": 0xFF00b976,
         "border_radius": BORDER_RADIUS,
         "border_color": 0x0,
         "border_width": 0,
@@ -42,6 +42,12 @@ TREE_VIEW_STYLE = {
     "TreeView.Item": {"color": 0xFFCCCCCC},
     "TreeView.Item:selected": {"color": 0xFFCCCCCC},
     "TreeView.Header": {"background_color": 0xFF000000},
+}
+
+IMPORTANT_BUTTON = {
+    "Button": {
+        "background_color": 0x7000b976
+    }
 }
 
 class AttachedItem(ui.AbstractItem):
@@ -128,7 +134,8 @@ class ExtensionUI():
 
                     self._controls_frame = ui.CollapsableFrame("CONTROLS",
                         collapsed=False,
-                        height=COLLAPSABLE_FRAME_HEIGHT
+                        height=COLLAPSABLE_FRAME_HEIGHT,
+                        style=CollapsableFrameStyle
                     )
                     with self._controls_frame:
                         with ui.HStack():
@@ -136,7 +143,15 @@ class ExtensionUI():
                                 ui.Button(
                                     "Start Scenario", 
                                     clicked_fn=self._controller._on_click_start_scenario,
-                                    height=DEFAULT_BTN_HEIGHT
+                                    height=DEFAULT_BTN_HEIGHT,
+                                    style=IMPORTANT_BUTTON
+                                )
+                                ui.Spacer(height=LINE_HEIGHT/8)
+                                ui.Button(
+                                    "Stop Scenario", 
+                                    clicked_fn=self._controller._on_click_stop_scenario,
+                                    height=DEFAULT_BTN_HEIGHT,
+                                    style=IMPORTANT_BUTTON
                                 )
                                 ui.Line(height=LINE_HEIGHT/2)
                                 ui.Button(
@@ -150,21 +165,23 @@ class ExtensionUI():
                                     clicked_fn=self._controller._on_click_load_ground_plane,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
+                                ui.Spacer(height=LINE_HEIGHT/8)
                                 ui.Button(
                                     "Load a sample vehicle template", 
                                     clicked_fn=self._controller._on_click_load_sample_vehicle,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
+                                ui.Spacer(height=LINE_HEIGHT/8)
                                 ui.Button(
                                     "Load a sample BasisCurve", 
                                     clicked_fn=self._controller._on_click_load_basis_curve,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
-                    ui.Line(height=LINE_HEIGHT/2)
 
                     self._atachments_frame = ui.CollapsableFrame(
                         "VEHICLE-TO-CURVE ATTACHMENTS", 
-                        collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT
+                        collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT,
+                        style=CollapsableFrameStyle
                     )
                     with self._atachments_frame:
                         with ui.VStack():
@@ -172,30 +189,39 @@ class ExtensionUI():
                                 "(1) Select WizardVehicle Xform and corresponding BasisCurve;\n(2) Click 'Attach Selected'",
                                 width=32
                             )
+                            ui.Spacer(height=LINE_HEIGHT/8)
                             ui.Button(
                                 "Attach Selected", 
                                 clicked_fn=self._controller._on_click_attach_selected,
-                                height=DEFAULT_BTN_HEIGHT
-                            )                            
+                                height=DEFAULT_BTN_HEIGHT,
+                                style=IMPORTANT_BUTTON
+                            )
+                            ui.Spacer(height=LINE_HEIGHT/8)                 
                             ui.Button(
                                 "Clear All Attachments",
                                 clicked_fn=self._controller._on_click_clear_attachments
                             )
                 # Column #2
-                with ui.VStack(direction=ui.Direction.TOP_TO_BOTTOM, height=20):
-                    if attachments is not None and len(attachments) > 0:
-                        self._attachment_label = ui.Label(
-                            "Active vehicle-to-curve attachments:",
-                            alignment=ui.Alignment.TOP
-                        )
-                    else:
-                        self._attachment_label = ui.Label("No active vehicle-to-curve attachments")
-                    self._attachment_model = AttachmentModel(attachments)
-                    tree_view = ui.TreeView(
-                        self._attachment_model, root_visible=False,
-                        header_visible=False,
-                        style={"TreeView.Item": {"margin": 4}}
+                self._attachments_frame = ui.CollapsableFrame(
+                        "VEHICLE-TO-CURVE atatchments", collapsed=False,
+                        height=COLLAPSABLE_FRAME_HEIGHT,
+                        style=CollapsableFrameStyle
                     )
+                with self._attachments_frame:
+                    with ui.VStack(direction=ui.Direction.TOP_TO_BOTTOM, height=20, style=CollapsableFrameStyle):
+                        if attachments is not None and len(attachments) > 0:
+                            self._attachment_label = ui.Label(
+                                "Active vehicle-to-curve attachments:",
+                                alignment=ui.Alignment.TOP
+                            )
+                        else:
+                            self._attachment_label = ui.Label("No active vehicle-to-curve attachments")
+                        self._attachment_model = AttachmentModel(attachments)
+                        tree_view = ui.TreeView(
+                            self._attachment_model, root_visible=False,
+                            header_visible=False,
+                            style={"TreeView.Item": {"margin": 4}}
+                        )
 
         # viewport = ui.Workspace.get_window("Viewport")
         # self._window.dock_in(viewport, ui.DockPosition.BOTTOM)
