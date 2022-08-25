@@ -13,6 +13,7 @@ class ExtensionModel:
 
     def __init__(self, extension_id, default_lookahead_distance, max_lookahed_distance, min_lookahed_distance):
         self._ext_id = extension_id
+        self._METADATA_KEY = f"{extension_id.split('-')[0]}.metadata"
         self._lookahead_distance = default_lookahead_distance
         self._min_lookahead_distance = min_lookahed_distance
         self._max_lookahead_distance = max_lookahed_distance
@@ -214,7 +215,7 @@ class ExtensionModel:
         vehicle_prim = stage.GetPrimAtPath(vehicle_path)
         metadata = vehicle_prim.GetCustomData()
         # Vehicle-to-Curve attachment of the preset is stored in the metadata.
-        attachment_preset = metadata["omni.path_tracking.metadata"]
+        attachment_preset = metadata[self._METADATA_KEY]
         assert(attachment_preset is not None)
         return attachment_preset
 
