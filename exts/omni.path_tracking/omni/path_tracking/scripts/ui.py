@@ -97,7 +97,7 @@ class ExtensionUI():
         self._controller = controller
 
     def build_ui(self, lookahead_distance, attachments):
-        self._window = ui.Window("Vehicle Path Tracking Extension", width=300, height=300)
+        self._window = ui.Window("Vehicle Path Tracking Extension (Beta)", width=300, height=300)
         with self._window.frame:
             with ui.HStack():
                 # Column #1
