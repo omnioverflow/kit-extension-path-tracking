@@ -1,6 +1,6 @@
 import omni.usd
 from enum import IntEnum
-from pxr import Gf, Usd, UsdGeom
+from pxr import Gf, Usd, UsdGeom, PhysxSchema
 
 import numpy as np
 
@@ -22,7 +22,7 @@ class Vehicle():
     dynamic properties, such as acceleration, desceleration, steering etc.
     """
 
-    def __init__(self, vehicle_prim):
+    def __init__(self, vehicle_prim, max_steer_angle_radians):
         self._prim = vehicle_prim
         self._path = self._prim.GetPath()
         self._steer_delta = 0.01
@@ -37,8 +37,15 @@ class Vehicle():
             Wheel.REAR_RIGHT :
                 self._stage.GetPrimAtPath(f"{self._path}/RightWheel2References")
         }
+        for wheel_prim_key in [Wheel.FRONT_LEFT, Wheel.FRONT_RIGHT]:
+            self._set_max_steer_angle(self._wheel_prims[wheel_prim_key], max_steer_angle_radians)
+
         p = self._prim.GetAttribute("xformOp:translate").Get()
         self._p = Gf.Vec4f(p[0], p[1], p[2], 1.0)
+
+    def _set_max_steer_angle(self, wheel_prim, max_steer_angle_radians):
+        physx_wheel = PhysxSchema.PhysxVehicleWheelAPI(wheel_prim)
+        physx_wheel.GetMaxSteerAngleAttr().Set(max_steer_angle_radians)
 
     def get_bbox_size(self):
         """Computes size of vehicle's oriented bounding box."""

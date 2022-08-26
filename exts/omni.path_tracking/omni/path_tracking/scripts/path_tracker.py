@@ -18,14 +18,16 @@ class PurePursuitScenario(Scenario):
     def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit):
         super().__init__(secondsToRun=10000.0, timeStep=1.0/25.0)
 
+        self._MAX_STEER_ANGLE_RADIANS = math.pi / 3
+
         self._lookahead_distance = lookahead_distance
         self._METERS_PER_UNIT = meters_per_unit
         self._max_speed = 250.0
 
         self._stage = omni.usd.get_context().get_stage()
-        self._vehicle = Vehicle(self._stage.GetPrimAtPath(vehicle_path))
+        self._vehicle = Vehicle(self._stage.GetPrimAtPath(vehicle_path), self._MAX_STEER_ANGLE_RADIANS)
         self._debug_render = DebugRenderer(self._vehicle.get_bbox_size())
-        self._path_tracker = PurePursuitPathTracker(math.pi / 4)
+        self._path_tracker = PurePursuitPathTracker(math.pi/4)
 
         self._dest = None
         self._trajectory_prim_path = trajectory_prim_path
