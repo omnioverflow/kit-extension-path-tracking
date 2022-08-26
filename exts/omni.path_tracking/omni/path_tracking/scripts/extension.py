@@ -27,7 +27,10 @@ class PathTrackingExtension(omni.ext.IExt):
             # Workaround for running within test environment.
             omni.usd.get_context().new_stage()
 
-        self._usd_listener = Tf.Notice.Register(Usd.Notice.ObjectsChanged, self._on_usd_change, None)
+        # Usd listener could be used in the future if we could be interested 
+        # in recomputing changes in the vehicle planned trajectory "on the fly".
+        # self._usd_listener = Tf.Notice.Register(Usd.Notice.ObjectsChanged, self._on_usd_change, None)
+
         self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
             self._on_stage_event, name="Stage Open/Closing Listening"
         )
@@ -128,15 +131,11 @@ class PathTrackingExtension(omni.ext.IExt):
         if event.type == int(omni.usd.StageEventType.CLOSING):
             self._model.clear_attachments()
             self._update_ui()
-        elif event.type == int(omni.usd.StageEventType.SELECTION_CHANGED):
-            carb.log_info("SELECTION_CHANGED")
-        # else:
-            # carb.log_info(f"{event} " + str(int(event.type)) + f" event.type")
 
     def _on_usd_change(self, objects_changed, stage):
         carb.log_info(f"_on_usd_change")
         for resync_path in objects_changed.GetResyncedPaths():
-            print(resync_path)
+            carb.log_info(resync_path)
 
     def _changed_enable_debug(self, model):
         self._model.set_enable_debug(model.as_bool)

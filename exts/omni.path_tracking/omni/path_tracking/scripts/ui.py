@@ -44,7 +44,7 @@ TREE_VIEW_STYLE = {
     "TreeView.Header": {"background_color": 0xFF000000},
 }
 
-IMPORTANT_BUTTON = {
+IMPORTANT_BUTTON_STYLE = {
     "Button": {
         "background_color": 0x7000b976
     }
@@ -144,14 +144,14 @@ class ExtensionUI():
                                     "Start Scenario", 
                                     clicked_fn=self._controller._on_click_start_scenario,
                                     height=DEFAULT_BTN_HEIGHT,
-                                    style=IMPORTANT_BUTTON
+                                    style=IMPORTANT_BUTTON_STYLE
                                 )
                                 ui.Spacer(height=LINE_HEIGHT/8)
                                 ui.Button(
                                     "Stop Scenario", 
                                     clicked_fn=self._controller._on_click_stop_scenario,
                                     height=DEFAULT_BTN_HEIGHT,
-                                    style=IMPORTANT_BUTTON
+                                    style=IMPORTANT_BUTTON_STYLE
                                 )
                                 ui.Line(height=LINE_HEIGHT/2)
                                 ui.Button(
@@ -200,7 +200,7 @@ class ExtensionUI():
                                 "Attach Selected", 
                                 clicked_fn=self._controller._on_click_attach_selected,
                                 height=DEFAULT_BTN_HEIGHT,
-                                style=IMPORTANT_BUTTON
+                                style=IMPORTANT_BUTTON_STYLE
                             )
                             ui.Spacer(height=LINE_HEIGHT/8)                 
                             ui.Button(
