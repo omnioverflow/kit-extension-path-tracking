@@ -157,7 +157,7 @@ class ExtensionModel:
             vehicle_prim_path, 
             True
         )
-        vehicle_usd_path = f"{ext_path}/data/vehicle.usd"
+        vehicle_usd_path = f"{ext_path}/data/usd/vehicle.usd"
         omni.kit.commands.execute(
             "CreateReferenceCommand",
             path_to=vehicle_prim_path,
@@ -178,13 +178,32 @@ class ExtensionModel:
             basis_curve_prim_path, 
             True
         )
-        basis_curve_usd_path = f"{ext_path}/data/curve.usd"
+        basis_curve_usd_path = f"{ext_path}/data/usd/curve.usd"
         omni.kit.commands.execute(
             "CreateReferenceCommand",
             path_to=basis_curve_prim_path,
             asset_path=basis_curve_usd_path,
             usd_context=usd_context,
         )
+
+    def load_forklift_rig(self):
+        """Load a forklift model from USD with already exisitng physx vehicle rig."""
+        usd_context = omni.usd.get_context()
+        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
+        forklift_prim_path = "/ForkliftRig"
+        forklift_prim_path = omni.usd.get_stage_next_free_path(
+            usd_context.get_stage(),
+            forklift_prim_path, 
+            True
+        )
+        vehicle_usd_path = f"{ext_path}/data/usd/forklift/forklift_rig.usd"
+        omni.kit.commands.execute(
+            "CreateReferenceCommand",
+            path_to=forklift_prim_path,
+            asset_path=vehicle_usd_path,
+            usd_context=usd_context,
+        )
+        return forklift_prim_path
 
     def load_preset_scene(self):
         """

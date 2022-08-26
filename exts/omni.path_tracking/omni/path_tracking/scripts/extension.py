@@ -95,6 +95,9 @@ class PathTrackingExtension(omni.ext.IExt):
     def _on_click_load_basis_curve(self):
         self._model.load_sample_track()
 
+    def _on_click_load_forklift(self):
+        self._model.load_forklift_rig()
+
     def _on_click_attach_selected(self):
         selected_prim_paths = omni.usd.get_context().get_selection().get_selected_prim_paths()
         self._model.attach_selected_prims(selected_prim_paths)

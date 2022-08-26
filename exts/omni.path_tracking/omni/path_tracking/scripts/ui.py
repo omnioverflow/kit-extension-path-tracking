@@ -177,6 +177,12 @@ class ExtensionUI():
                                     clicked_fn=self._controller._on_click_load_basis_curve,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
+                                ui.Spacer(height=LINE_HEIGHT/8)
+                                ui.Button(
+                                    "Load a Forklift", 
+                                    clicked_fn=self._controller._on_click_load_forklift,
+                                    height=DEFAULT_BTN_HEIGHT
+                                )                                
 
                     self._atachments_frame = ui.CollapsableFrame(
                         "VEHICLE-TO-CURVE ATTACHMENTS", 
