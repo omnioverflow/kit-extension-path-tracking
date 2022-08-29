@@ -35,17 +35,19 @@ properties are not taken into account, such as tire slipping etc.
 
 Pre-requisites:
 * `Git`
-### Add a Git URL to Omniverse extension search path 
+### Add a Git URL to Omniverse extension search path (optioni 1)
 
 Inside Omniverse Code or Create:
 1. `Window` -> `Extension Manager` -> ⚙️ `Gear Icon` -> `Extension Search Path`
 2. Add the following git url as an new search path: `git://github.com/iirthw/kit-extension-path-tracking?branch=main&dir=exts`
 
-### Add a path to a local clone to Omniverse extension search path 
+### Add a path to a local clone to Omniverse extension search path (option 2)
 
 1. `git clone -b main $PATH_TO_DIR`
 2. `Window` -> `Extension Manager` -> ⚙️ `Gear Icon` -> `Extension Search Path`
 3. Add a path to just cloned extension as an extension search path: `$PATH_TO_DIR/exts`
+
+### Activate extension
 
 When extension search path configuration is done, start the extension:
 1. `Window` -> `Extension Manager`
@@ -59,7 +61,7 @@ Figure 2. Activating path tracking extension in extension manager.</br>
 
 ## 3. Getting Started
 
-### 3.1. Evaluate vehicle path tracking on preset configuration
+### 3.1. Evaluate vehicle path tracking on a preset configuration
 
 The fastest way to evaluate how vehicle path tracking extension works is to use a preset vehicle and curve (could be considered as `HelloWorld` before importing your own physx-vehicle and custom paths).
 In order to get started with the preset configuration please proceed as follows (Figure 3):
@@ -128,6 +130,6 @@ Figure 9. Support of multiple vehicle-to-curve attachments.
 
 1. [Omniverse Developer Contest] https://www.nvidia.com/en-us/omniverse/apps/code/developer-contest/
 2. [Omniverse Vehicle Dynamics] https://docs.omniverse.nvidia.com/app_create/prod_extensions/ext_vehicle-dynamics.html
-3. [Coutler 1992, Pure Pursuit Path Tracking Algorithm] https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
+3. [Coutler 1992] Coulter, R. Craig. Implementation of the pure pursuit path tracking algorithm. Carnegie-Mellon UNIV Pittsburgh PA Robotics INST, 1992. (https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf)
 4. Credits for a forklift model model: https://sketchfab.com/3d-models/forklift-73d21c990e634589b0c130777751be28 (license: [Creative Commons Attribution](https://creativecommons.org/licenses/by/4.0/))
 5. Credits for a Dodge Challenger car model: https://sketchfab.com/3d-models/dodge-challenger-ef40662c84eb4beb85acdfce5ac4f40e (license: [Creative Commons Attribution NonCommercial](https://creativecommons.org/licenses/by-nc/4.0/))
