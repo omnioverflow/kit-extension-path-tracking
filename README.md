@@ -126,6 +126,15 @@ Results of path tracking with multiple vehicles is shown on Figure 9.
 <img src="exts/omni.path_tracking/data/img/figures/figure_09_01.png" style="height:300px"/> <img src="exts/omni.path_tracking/data/img/figures/figure_09_02.png" style="height:300px"/> <img src="exts/omni.path_tracking/data/img/figures/figure_09_03.png" style="height:300px"/><br/>
 Figure 9. Support of multiple vehicle-to-curve attachments.
 
+### Troubleshooting
+
+Note that extension is in Beta. The following items might be of help if any issues:
+
+- It always takes a few seconds between clicking 'Start scenario' button and actual start of the simulation, so please be patient;
+- On a fresh install some physx warnings/errors might be occasionally reported to the console log, they should not prevent the extension from producing expected results though;
+- If path tracking is not working on a custom vehicle and path, please verify that exactly `WizardVehicle1` from omni.physx.vehicle is selected (not a child prim 'WizardVehicle1/Vehicle' or some parent prim) along with a prim of type `BasisCurves` (which is to be tracked) before clicking 'Attach Selected';
+- Use 'Clear All Attachments` if there are some issues.
+
 ---
 
 ## 4. References
