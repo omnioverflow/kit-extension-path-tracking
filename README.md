@@ -108,6 +108,8 @@ extension UI (Figure 7).
 <img src="exts/omni.path_tracking/data/img/figures/figure_07.png" style="width:600px"/><br/>
 Figure 7. Successful vehicle-to-curve attachment is shown on the right side.
 
+When vehicle-to-curve attachment(s) is created, proceed by clicking Start Scenario button.
+
 If you want to get rid of all already existing vehicle-to-curve attachments please click `Clear All Attachments` (Figure 8).
 It is very important to clear vehicle-to-curve attachments, when changing vehicles and corresponding tracked paths.
 
