@@ -209,7 +209,7 @@ class ExtensionUI():
                             )
                 # Column #2
                 self._attachments_frame = ui.CollapsableFrame(
-                        "VEHICLE-TO-CURVE atatchments", collapsed=False,
+                        "VEHICLE-TO-CURVE attachments", collapsed=False,
                         height=COLLAPSABLE_FRAME_HEIGHT,
                         style=CollapsableFrameStyle
                     )
