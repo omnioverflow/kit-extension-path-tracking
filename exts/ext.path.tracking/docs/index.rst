@@ -1,4 +1,4 @@
-omni.path_tracking
+omni.path.tracking
 ########################
 
 Omniverse Vehicle Path tracking extension allows a physics-enabled vehicle created

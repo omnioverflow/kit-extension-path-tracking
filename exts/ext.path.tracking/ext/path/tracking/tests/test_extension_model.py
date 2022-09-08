@@ -14,7 +14,7 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         await usd_context.new_stage_async()
 
         ext_manager = omni.kit.app.get_app().get_extension_manager()
-        self._ext_id = ext_manager.get_enabled_extension_id("omni.path_tracking")
+        self._ext_id = ext_manager.get_enabled_extension_id("omni.path.tracking")
 
     async def tearDown(self):
         self._ext_id = None
