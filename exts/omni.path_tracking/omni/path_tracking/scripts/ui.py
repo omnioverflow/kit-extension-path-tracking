@@ -131,6 +131,13 @@ class ExtensionUI():
                                 self._lookahead_field = ui.FloatField(width=64.0)
                                 self._lookahead_field.model.set_value(lookahead_distance)
                                 self._lookahead_field.model.add_end_edit_fn(self._notify_lookahead_distance_changed)
+                            with ui.HStack(width=width, height=height):
+                                ui.Label("Trajectory Loop:")
+                                self._checkbox_trajectory_loop = ui.CheckBox(name="TracjectoryLoop")
+                                self._checkbox_trajectory_loop.model.set_value(False)
+                                self._checkbox_trajectory_loop.model.add_value_changed_fn(
+                                    self._controller._on_trajectory_loop_value_changed
+                                )
 
                     self._controls_frame = ui.CollapsableFrame("CONTROLS",
                         collapsed=False,

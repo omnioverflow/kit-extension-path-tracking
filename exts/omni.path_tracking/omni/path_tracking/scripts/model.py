@@ -28,6 +28,8 @@ class ExtensionModel:
         self._dirty = False
         # Enables debug overlay with additional info regarding current vehicle state.
         self._enable_debug=False
+        # Closed trajectory loop
+        self._closed_trajectory_loop = False
 
     def teardown(self):
         self.stop_scenarios()
@@ -111,7 +113,8 @@ class ExtensionModel:
                     lookahead_distance,
                     vehicle_path,
                     self._vehicle_to_curve_attachments[vehicle_path],
-                    self.METERS_PER_UNIT
+                    self.METERS_PER_UNIT,
+                    self._closed_trajectory_loop
                 )
                 scenario.enable_debug(self._enable_debug)
                 scenario_manager = ScenarioManager(scenario)
@@ -136,6 +139,14 @@ class ExtensionModel:
         self._enable_debug = flag
         for manager in self._scenario_managers:
             manager.scenario.enable_debug(flag)
+
+    def set_close_trajectory_loop(self, flag):
+        """
+        Enables closed loop path tracking.
+        """
+        self._closed_trajectory_loop = flag
+        for manager in self._scenario_managers:
+            manager.scenario.set_close_trajectory_loop(flag)
 
     def load_ground_plane(self):
         """

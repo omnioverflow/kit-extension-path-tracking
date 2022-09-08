@@ -144,3 +144,6 @@ class PathTrackingExtension(omni.ext.IExt):
         # self._clear_attachments()
         clamped_lookahead_distance = self._model.update_lookahead_distance(distance)
         self._ui.set_lookahead_distance(clamped_lookahead_distance)
+
+    def _on_trajectory_loop_value_changed(self, widget_model):
+        self._model.set_close_trajectory_loop(widget_model.as_bool)

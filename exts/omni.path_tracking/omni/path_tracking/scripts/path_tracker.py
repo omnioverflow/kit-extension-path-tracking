@@ -15,7 +15,7 @@ from .vehicle import Axle, Vehicle
 #
 # ==============================================================================
 class PurePursuitScenario(Scenario):
-    def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit):
+    def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit, close_loop_flag):
         super().__init__(secondsToRun=10000.0, timeStep=1.0/25.0)
 
         self._MAX_STEER_ANGLE_RADIANS = math.pi / 3
@@ -31,9 +31,10 @@ class PurePursuitScenario(Scenario):
 
         self._dest = None
         self._trajectory_prim_path = trajectory_prim_path
-        self._trajectory = Trajectory(trajectory_prim_path)
+        self._trajectory = Trajectory(trajectory_prim_path, close_loop=close_loop_flag)
         self._stopped = False
         self.draw_track = False
+        self._close_loop = close_loop_flag
     
     def on_start(self):
         self._vehicle.accelerate(1.0)
@@ -134,10 +135,14 @@ class PurePursuitScenario(Scenario):
             self._full_stop()
 
     def recompute_trajectory(self):
-        self._trajectory = Trajectory(self._trajectory_prim_path)
+        self._trajectory = Trajectory(self._trajectory_prim_path, self._close_loop)
 
     def set_lookahead_distance(self, distance):
         self._lookahead_distance = distance
+
+    def set_close_trajectory_loop(self, flag):
+        self._close_loop = flag
+        self._trajectory.set_close_loop(flag)
 
 # ==============================================================================
 # 
@@ -201,7 +206,7 @@ class Trajectory():
     """
     A helper class to access coordinates of points that form a BasisCurve prim.
     """
-    def __init__(self, prim_path):
+    def __init__(self, prim_path, close_loop=True):
         stage = omni.usd.get_context().get_stage()
         basis_curves = UsdGeom.BasisCurves.Get(stage, prim_path)
         if (basis_curves and basis_curves is not None):
@@ -219,6 +224,7 @@ class Trajectory():
             self._points = None
             self._num_points = 0
         self._pointer = 0
+        self._close_loop = close_loop
 
     def point(self):
         """
@@ -232,6 +238,8 @@ class Trajectory():
         """
         if (self._pointer < self._num_points):
             self._pointer = self._pointer + 1
+            if self._pointer >= self._num_points and self._close_loop:
+                self._pointer = 0
             return self.point()
         return None
 
@@ -246,3 +254,6 @@ class Trajectory():
         Resets current point to the first one.
         """
         self._pointer = 0
+
+    def set_close_loop(self, flag):
+        self._close_loop = flag
