@@ -17,29 +17,29 @@ Figure 1. Preview of Vehicle Path Tracking Extension
 
 ### Limitations
 
-For the moment the extension is simple and a number of 
-shortcuts has been taken and a few simplification applied, including the follwoing:
+For the moment, the extension is simple and a number of 
+shortcuts have been taken and a few simplifications applied, including the following:
 
-* Pure Pursuit Tracking algorithm is kinematics-based and therefore a number of physics vehicle dynamics
-properties are not taken into account, such as tire slipping etc. 
-* A vehicle might go off the track if proposed an input path of a physically "impossible" trajectory, or at high speed turn.
+* Pure Pursuit Tracking algorithm is kinematics-based and therefore several physics vehicle dynamics
+properties are not considered while computing wheel steering angle, such as tire slipping etc. 
+* A vehicle might go off the track if proposed an input path of a physically "impossible" trajectory, or at high-speed turn.
 * Limited unit test coverage; occasional bugs might exist.
 
 ### Future Work
 
-* implement automatic computation of vehicle path which satisfies certain constraints (waypoints, collision free path etc.);
-* Add support for different path tracking algorithms including more sophisticated ones;
+* Implement automatic computation of vehicle path which satisfies certain constraints (waypoints, collision free path etc.).
+* Add support for different vehicle controller algorithms, including more sophisticated ones (e.g., PID controller).
 * Getting rid of limitations, bugfix.
 
 ## 2. Installing Extension
 
 Pre-requisites:
 * `Git`
-### Add a Git URL to Omniverse extension search path (optioni 1)
+### Add a Git URL to Omniverse extension search path (option 1)
 
 Inside Omniverse Code or Create:
 1. `Window` -> `Extension Manager` -> ⚙️ `Gear Icon` -> `Extension Search Path`
-2. Add the following git url as an new search path: `git://github.com/iirthw/kit-extension-path-tracking?branch=main&dir=exts`
+2. Add the following git URL as a new search path: `git://github.com/iirthw/kit-extension-path-tracking?branch=main&dir=exts`
 
 ### Add a path to a local clone to Omniverse extension search path (option 2)
 
@@ -64,7 +64,7 @@ Figure 2. Activating path tracking extension in extension manager.</br>
 ### 3.1. Evaluate vehicle path tracking on a preset configuration
 
 The fastest way to evaluate how vehicle path tracking extension works is to use a preset vehicle and curve (could be considered as `HelloWorld` before importing your own physx-vehicle and custom paths).
-In order to get started with the preset configuration please proceed as follows (Figure 3):
+To get started with the preset configuration please proceed as follows (Figure 3):
 1. Click `Load a preset scene` button
 2. Click `Start scenario` button
 
@@ -81,7 +81,7 @@ Figure 4. Other extension controls.
 ### 3.2. Create your custom vehicle-to-curve attachment setup
 
 Extension supports path tracking for any Omniverse PhysX Vehicle.
-One could load a template vehicle using the extension ui, or using a conventional method via `Create`->`Physics`->`Vehicle`.
+One could load a template vehicle using the extension ui or using a conventional method via `Create`->`Physics`->`Vehicle`.
 It is also straightforward to add a custom mesh and materials to a physics vehicle [2].
 
 You can create a curve for vehicle path tracking using either of the following methods (Figure 5):
@@ -102,7 +102,7 @@ Please see Figure 6 for the illustration.
 <img src="exts/omni.path_tracking/data/img/figures/figure_06.png" style="width:1100px"/><br/>
 Figure 6. Attachment of a path (USD BasisCurves) to a physics-enabled vehicle.
 
-If vehicle-to-curve attachment was successful it should be reflected on the
+In case if vehicle-to-curve attachment was successful it should be reflected on the
 extension UI (Figure 7).
 
 <img src="exts/omni.path_tracking/data/img/figures/figure_07.png" style="width:600px"/><br/>
@@ -110,7 +110,7 @@ Figure 7. Successful vehicle-to-curve attachment is shown on the right side.
 
 When vehicle-to-curve attachment(s) is created, proceed by clicking Start Scenario button.
 
-If you want to get rid of all already existing vehicle-to-curve attachments please click `Clear All Attachments` (Figure 8).
+If you want to get rid of all already existing vehicle-to-curve attachments, please click `Clear All Attachments` (Figure 8).
 It is very important to clear vehicle-to-curve attachments, when changing vehicles and corresponding tracked paths.
 
 <img src="exts/omni.path_tracking/data/img/figures/figure_08.png" style="width:600px"/><br/>
@@ -118,9 +118,9 @@ Figure 8. Removing existing vehicle-to-curve attachments.
 
 ### 3.3. Multiple Vehicles
 
-The extension supports multiple vehicle-to-curve atttachments.
-Note, that in order for attachment to work, a pair of `WizardVehicle` and
-`BasisCurve` objects should be selected and attached in a consequent manner.
+The extension supports multiple vehicle-to-curve attachments.
+Note, that for attachment to work, a pair of `WizardVehicle` and
+`BasisCurve` objects should be selected and attached consequently.
 Results of path tracking with multiple vehicles is shown on Figure 9.
 
 <img src="exts/omni.path_tracking/data/img/figures/figure_09_01.png" style="height:300px"/> <img src="exts/omni.path_tracking/data/img/figures/figure_09_02.png" style="height:300px"/> <img src="exts/omni.path_tracking/data/img/figures/figure_09_03.png" style="height:300px"/><br/>
@@ -130,9 +130,9 @@ Figure 9. Support of multiple vehicle-to-curve attachments.
 
 Note that extension is in Beta. The following items might be of help if any issues:
 
-- It always takes a few seconds between clicking 'Start scenario' button and actual start of the simulation, so please be patient;
-- On a fresh install some physx warnings/errors might be occasionally reported to the console log, they should not prevent the extension from producing expected results though;
-- If path tracking is not working on a custom vehicle and path, please verify that exactly `WizardVehicle1` from omni.physx.vehicle is selected (not a child prim 'WizardVehicle1/Vehicle' or some parent prim) along with a prim of type `BasisCurves` (which is to be tracked) before clicking 'Attach Selected';
+- It always takes a few seconds between clicking 'Start scenario' button and actual start of the simulation, so please be patient.
+- On a fresh install some physx warnings/errors might be occasionally reported to the console log, they should not prevent the extension from producing expected results though.
+- If path tracking is not working on a custom vehicle and path, please verify that exactly `WizardVehicle1` from omni.physx.vehicle is selected (not a child prim 'WizardVehicle1/Vehicle' or some parent prim) along with a prim of type `BasisCurves` (which is to be tracked) before clicking 'Attach Selected’.
 - Use 'Clear All Attachments` if there are some issues.
 
 ---
