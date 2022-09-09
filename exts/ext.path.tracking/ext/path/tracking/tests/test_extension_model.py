@@ -14,13 +14,21 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         await usd_context.new_stage_async()
 
         ext_manager = omni.kit.app.get_app().get_extension_manager()
-        self._ext_id = ext_manager.get_enabled_extension_id("omni.path.tracking")
+        self._ext_id = ext_manager.get_enabled_extension_id("ext.path.tracking")
+
+        self._DEFAULT_LOOKAHEAD = 400.0
+        self._MAX_LOOKAHEAD = 1200.0
+        self._MIN_LOOKAHEAD = 300.0
 
     async def tearDown(self):
         self._ext_id = None
 
     async def test_load_preset(self):
-        ext_model = ExtensionModel(self._ext_id)
+        ext_model = ExtensionModel(self._ext_id,
+            default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
+            max_lookahed_distance=self._MAX_LOOKAHEAD,
+            min_lookahed_distance=self._MIN_LOOKAHEAD
+        )
         ext_model.load_preset_scene()
 
         stage = omni.usd.get_context().get_stage()
@@ -33,7 +41,11 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         self.assertTrue(curve is not None)
 
     async def test_hello(self):
-        ext_model = ExtensionModel(self._ext_id)
+        ext_model = ext_model = ExtensionModel(self._ext_id,
+            default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
+            max_lookahed_distance=self._MAX_LOOKAHEAD,
+            min_lookahed_distance=self._MIN_LOOKAHEAD
+        )
 
     async def test_attachments_preset(self):
         # TODO: provide impl
