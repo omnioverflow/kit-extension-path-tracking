@@ -20,7 +20,7 @@ keywords = ["kit", "omni.physxvehicle", "animation", "path", "tracking", "vehicl
 "omni.kit.test_suite.helpers" = {}
 
 [[python.module]]
-name = "omni.path_tracking"
+name = "ext.path.tracking"
 
 [[test]]
 args = [

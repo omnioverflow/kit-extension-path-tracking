@@ -7,7 +7,7 @@ with a PhysX Vehicle extension (omni.physx.vehicle) to move and automatically tr
 User-defined path is represented by an instance of USD BasisCurves, and a path tracking algorithm
 is inspired by a classic Pure Pursuit algorithm [3].
 
-![Vehicle Path Tracking Preview](exts/omni.path_tracking/data/preview.PNG)
+![Vehicle Path Tracking Preview](exts/ext.path.tracking/data/preview.PNG)
 Figure 1. Preview of Vehicle Path Tracking Extension
 
 ### System Requirements:
@@ -54,7 +54,7 @@ When extension search path configuration is done, start the extension:
 2. Find Vehicle path tracking extension in the list and enable it (Figure 2)
 
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_01.png" alt="activating extension" style="height:400px;"/></br>
+<img src="exts/ext.path.tracking/data/img/figures/figure_01.png" alt="activating extension" style="height:400px;"/></br>
 Figure 2. Activating path tracking extension in extension manager.</br>
 
 ---
@@ -68,12 +68,12 @@ To get started with the preset configuration please proceed as follows (Figure 3
 1. Click `Load a preset scene` button
 2. Click `Start scenario` button
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_02.png" style="width:600px" alt="extension preview"><br/>
+<img src="exts/ext.path.tracking/data/img/figures/figure_02.png" style="width:600px" alt="extension preview"><br/>
 Figure 3. Getting started with a preset scene.
 
 The extension also allows a quick way to load a ground plane, a sample physics vehicle, and a sample basis curve. See Figure 4.
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_03.png" style="width:600px" alt="extension controls"/><br/>
+<img src="exts/ext.path.tracking/data/img/figures/figure_03.png" style="width:600px" alt="extension controls"/><br/>
 Figure 4. Other extension controls.
 
 ---
@@ -88,7 +88,7 @@ You can create a curve for vehicle path tracking using either of the following m
 - `Create`->`BasisCurves`->`From Bezier`
 - `Create`->`BasisCurves`->`From Pencil`
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_04.png" style="height:500px"/>  |  <img src="exts/omni.path_tracking/data/img/figures/figure_05.png" style="height:500px"/><br/>
+<img src="exts/ext.path.tracking/data/img/figures/figure_04.png" style="height:500px"/>  |  <img src="exts/ext.path.tracking/data/img/figures/figure_05.png" style="height:500px"/><br/>
 Figure 5. Create a custom path to track via USD BasisCurves.
 
 
@@ -99,13 +99,13 @@ and click `Attach Selected` button. Note that is very important to select specif
 not `WizardVehicle/Vehicle` for instance.
 Please see Figure 6 for the illustration.
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_06.png" style="width:1100px"/><br/>
+<img src="exts/ext.path.tracking/data/img/figures/figure_06.png" style="width:1100px"/><br/>
 Figure 6. Attachment of a path (USD BasisCurves) to a physics-enabled vehicle.
 
 In case if vehicle-to-curve attachment was successful it should be reflected on the
 extension UI (Figure 7).
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_07.png" style="width:600px"/><br/>
+<img src="exts/ext.path.tracking/data/img/figures/figure_07.png" style="width:600px"/><br/>
 Figure 7. Successful vehicle-to-curve attachment is shown on the right side.
 
 When vehicle-to-curve attachment(s) is created, proceed by clicking Start Scenario button.
@@ -113,7 +113,7 @@ When vehicle-to-curve attachment(s) is created, proceed by clicking Start Scenar
 If you want to get rid of all already existing vehicle-to-curve attachments, please click `Clear All Attachments` (Figure 8).
 It is very important to clear vehicle-to-curve attachments, when changing vehicles and corresponding tracked paths.
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_08.png" style="width:600px"/><br/>
+<img src="exts/ext.path.tracking/data/img/figures/figure_08.png" style="width:600px"/><br/>
 Figure 8. Removing existing vehicle-to-curve attachments.
 
 ### 3.3. Multiple Vehicles
@@ -123,7 +123,7 @@ Note, that for attachment to work, a pair of `WizardVehicle` and
 `BasisCurve` objects should be selected and attached consequently.
 Results of path tracking with multiple vehicles is shown on Figure 9.
 
-<img src="exts/omni.path_tracking/data/img/figures/figure_09_01.png" style="height:300px"/> <img src="exts/omni.path_tracking/data/img/figures/figure_09_02.png" style="height:300px"/> <img src="exts/omni.path_tracking/data/img/figures/figure_09_03.png" style="height:300px"/><br/>
+<img src="exts/ext.path.tracking/data/img/figures/figure_09_01.png" style="height:300px"/> <img src="exts/ext.path.tracking/data/img/figures/figure_09_02.png" style="height:300px"/> <img src="exts/ext.path.tracking/data/img/figures/figure_09_03.png" style="height:300px"/><br/>
 Figure 9. Support of multiple vehicle-to-curve attachments.
 
 ### Troubleshooting
