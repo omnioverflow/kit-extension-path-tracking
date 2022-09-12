@@ -33,9 +33,12 @@ properties are not considered while computing wheel steering angle, such as tire
 
 ## 2. Installing Extension
 
+### Add a Git URL to Omniverse extension search path (option 1)
+
 Pre-requisites:
 * `Git`
-### Add a Git URL to Omniverse extension search path (option 1)
+* NVIDIA Omniverse `omni.kit.extpath.git` built-in extension has to be enabled for this scheme to work
+* Omniverse Nucleus up and running: might be needed to process URL login redirections on first usage of git scheme
 
 Inside Omniverse Code or Create:
 1. `Window` -> `Extension Manager` -> ⚙️ `Gear Icon` -> `Extension Search Path`
@@ -121,7 +124,7 @@ Figure 8. Removing existing vehicle-to-curve attachments.
 The extension supports multiple vehicle-to-curve attachments.
 Note, that for attachment to work, a pair of `WizardVehicle` and
 `BasisCurve` objects should be selected and attached consequently.
-Results of path tracking with multiple vehicles is shown on Figure 9.
+Results of path tracking with multiple vehicles is shown in Figure 9.
 
 <img src="exts/ext.path.tracking/data/img/figures/figure_09_01.png" style="height:300px"/> <img src="exts/ext.path.tracking/data/img/figures/figure_09_02.png" style="height:300px"/> <img src="exts/ext.path.tracking/data/img/figures/figure_09_03.png" style="height:300px"/><br/>
 Figure 9. Support of multiple vehicle-to-curve attachments.
