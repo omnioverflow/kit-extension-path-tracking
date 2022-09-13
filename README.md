@@ -140,10 +140,17 @@ Note that extension is in Beta. The following items might be of help if any issu
 
 ---
 
-## 4. References
+## 4. Results
+
+1. [video] [Vehicle Path Tracking Extension Overview](https://youtu.be/tv-_xrqjzm4)
+2. [video] [PhysX & Vehicle Dynamics Showcase](https://youtu.be/C8tjZWtU6w8)
+
+## 5. References
 
 1. [Omniverse Developer Contest] https://www.nvidia.com/en-us/omniverse/apps/code/developer-contest/
 2. [Omniverse Vehicle Dynamics] https://docs.omniverse.nvidia.com/app_create/prod_extensions/ext_vehicle-dynamics.html
 3. [Coutler 1992] Coulter, R. Craig. Implementation of the pure pursuit path tracking algorithm. Carnegie-Mellon UNIV Pittsburgh PA Robotics INST, 1992. (https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf)
 4. Credits for a forklift model model: https://sketchfab.com/3d-models/forklift-73d21c990e634589b0c130777751be28 (license: [Creative Commons Attribution](https://creativecommons.org/licenses/by/4.0/))
 5. Credits for a Dodge Challenger car model: https://sketchfab.com/3d-models/dodge-challenger-ef40662c84eb4beb85acdfce5ac4f40e (license: [Creative Commons Attribution NonCommercial](https://creativecommons.org/licenses/by-nc/4.0/))
+6. Credits for a monster truck (used in the result video): https://sketchfab.com/3d-models/hcr2-monster-truck-811bd567566b497a8cbbb06fd5a267b6 (license: [Creative Commons Attribution](https://creativecommons.org/licenses/by/4.0/))
+7. Credits for a race track model (used in the result video): https://sketchfab.com/3d-models/track-5f5e9454fd59436e8d0dd38df9ec83c4 (license: [Creative Commons Attribution NonCommercial](https://creativecommons.org/licenses/by-nc/4.0/))
