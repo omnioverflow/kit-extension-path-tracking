@@ -142,8 +142,9 @@ Note that extension is in Beta. The following items might be of help if any issu
 
 ## 4. Results
 
-1. [video] [Vehicle Path Tracking Extension Overview](https://youtu.be/tv-_xrqjzm4)
-2. [video] [PhysX & Vehicle Dynamics Showcase](https://youtu.be/C8tjZWtU6w8)
+1. [youtube video] [Vehicle Path Tracking Extension Overview](https://youtu.be/tv-_xrqjzm4)
+2. [youtube video] [Vehicle Dynamics and Vehicle Path Tracking: Forklift Usecase](https://youtu.be/SRibExkL4aE)
+2. [youtube video] [OmniPhysX & Vehicle Dynamics Showcase](https://youtu.be/C8tjZWtU6w8)
 
 ## 5. References
 
