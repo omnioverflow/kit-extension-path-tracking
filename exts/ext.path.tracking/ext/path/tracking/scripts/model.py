@@ -30,6 +30,7 @@ class ExtensionModel:
         self._enable_debug=False
         # Closed trajectory loop
         self._closed_trajectory_loop = False
+        self._rear_steering = False
 
     def teardown(self):
         self.stop_scenarios()
@@ -78,6 +79,7 @@ class ExtensionModel:
             wizard_vehicle_path = metadata["WizardVehicle"],
             curve_path = metadata["BasisCurve"]
         )
+    
     def _cleanup_scenario_managers(self):
         """Cleans up scenario managers. Often useful when tracked data becomes obsolete."""
         self.stop_scenarios()
@@ -114,7 +116,8 @@ class ExtensionModel:
                     vehicle_path,
                     self._vehicle_to_curve_attachments[vehicle_path],
                     self.METERS_PER_UNIT,
-                    self._closed_trajectory_loop
+                    self._closed_trajectory_loop,
+                    self._rear_steering
                 )
                 scenario.enable_debug(self._enable_debug)
                 scenario_manager = ScenarioManager(scenario)
@@ -147,6 +150,14 @@ class ExtensionModel:
         self._closed_trajectory_loop = flag
         for manager in self._scenario_managers:
             manager.scenario.set_close_trajectory_loop(flag)
+
+    def set_enable_rear_steering(self, flag):
+        """
+        Enables rear steering for the vehicle.
+        """
+        self._rear_steering = flag
+        # Mark simulation config as dirty in order to re-create vehicle object.
+        self._dirty = True
 
     def load_ground_plane(self):
         """

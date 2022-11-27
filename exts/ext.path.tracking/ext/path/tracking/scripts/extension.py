@@ -147,3 +147,8 @@ class PathTrackingExtension(omni.ext.IExt):
 
     def _on_trajectory_loop_value_changed(self, widget_model):
         self._model.set_close_trajectory_loop(widget_model.as_bool)
+
+    def _on_steering_changed(self, model):
+        # First we have to stop current simulation.
+        self._on_click_stop_scenario()
+        self._model.set_enable_rear_steering(model.as_bool)

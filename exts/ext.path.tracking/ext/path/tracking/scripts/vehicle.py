@@ -22,7 +22,7 @@ class Vehicle():
     dynamic properties, such as acceleration, desceleration, steering etc.
     """
 
-    def __init__(self, vehicle_prim, max_steer_angle_radians, rear_steering=False):
+    def __init__(self, vehicle_prim, max_steer_angle_radians, rear_steering=True):
         self._prim = vehicle_prim
         self._path = self._prim.GetPath()
         self._steer_delta = 0.01
@@ -38,14 +38,16 @@ class Vehicle():
             Wheel.REAR_RIGHT :
                 self._stage.GetPrimAtPath(f"{self._path}/RightWheel2References")
         }
-        steering_wheels = []
+        steering_wheels = [Wheel.FRONT_LEFT, Wheel.FRONT_RIGHT]
+        non_steering_wheels = [Wheel.REAR_LEFT, Wheel.REAR_RIGHT]
         if self._rear_stearing:
-            steering_wheels = [Wheel.REAR_LEFT, Wheel.REAR_RIGHT]
-        else:
-            steering_wheels = [Wheel.FRONT_LEFT, Wheel.FRONT_RIGHT]
+            steering_wheels, non_steering_wheels = non_steering_wheels, steering_wheels
 
         for wheel_prim_key in steering_wheels:
             self._set_max_steer_angle(self._wheel_prims[wheel_prim_key], max_steer_angle_radians)
+            
+        for wheel_prim_key in non_steering_wheels:
+            self._set_max_steer_angle(self._wheel_prims[wheel_prim_key], 0.0)
 
         p = self._prim.GetAttribute("xformOp:translate").Get()
         self._p = Gf.Vec4f(p[0], p[1], p[2], 1.0)
