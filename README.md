@@ -12,7 +12,7 @@ Figure 1. Preview of Vehicle Path Tracking Extension
 
 ### System Requirements:
 
-- `Code 2022.1.3+` or `Create 2022.1.5+`
+- `Code 2022.1.3+` or `Create 2022.1.5+` (support for Create 2022.3.0 is in progress)
 - `Pyhton 3.7+`, `numpy` (this requirement should be satisfied when using Omniverse Kit's embedded `CPython 3.7`)
 
 ### Limitations
@@ -33,22 +33,15 @@ properties are not considered while computing wheel steering angle, such as tire
 
 ## 2. Installing Extension
 
-### Add a Git URL to Omniverse extension search path (option 1)
-
-Pre-requisites:
-* `Git`
-* NVIDIA Omniverse `omni.kit.extpath.git` built-in extension has to be enabled for this scheme to work
-* Omniverse Nucleus up and running: might be needed to process URL login redirections on first usage of git scheme
-
-Inside Omniverse Code or Create:
-1. `Window` -> `Extension Manager` -> ⚙️ `Gear Icon` -> `Extension Search Path`
-2. Add the following git URL as a new search path: `git://github.com/iirthw/kit-extension-path-tracking?branch=main&dir=exts`
-
-### Add a path to a local clone to Omniverse extension search path (option 2)
+### Add a path to a local clone to Omniverse extension search path
 
 1. `git clone -b main $PATH_TO_DIR`
 2. `Window` -> `Extension Manager` -> ⚙️ `Gear Icon` -> `Extension Search Path`
 3. Add a path to just cloned extension as an extension search path: `$PATH_TO_DIR/exts`
+
+### Omniverse Community Tab
+
+Extension is also available in the community tab in the Extension Manager: just search for path-tracking in the search field.
 
 ### Activate extension
 
