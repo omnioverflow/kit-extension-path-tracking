@@ -41,7 +41,7 @@ properties are not considered while computing wheel steering angle, such as tire
 
 ### Omniverse Community Tab
 
-Extension is also available in the community tab in the Extension Manager: just search for path-tracking in the search field.
+Extension is also available in the community tab in the Extension Manager: just search for path.tracking in the search field.
 
 ### Activate extension
 
