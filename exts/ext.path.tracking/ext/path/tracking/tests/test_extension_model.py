@@ -16,7 +16,7 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         ext_manager = omni.kit.app.get_app().get_extension_manager()
         self._ext_id = ext_manager.get_enabled_extension_id("ext.path.tracking")
 
-        self._DEFAULT_LOOKAHEAD = 400.0
+        self._DEFAULT_LOOKAHEAD = 550.0
         self._MAX_LOOKAHEAD = 1200.0
         self._MIN_LOOKAHEAD = 300.0
 

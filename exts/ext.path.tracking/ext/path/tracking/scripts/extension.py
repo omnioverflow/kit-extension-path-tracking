@@ -17,10 +17,10 @@ from .ui import *
 class PathTrackingExtension(omni.ext.IExt):
 
     def __init__(self):
-        self._DEFAULT_LOOKAHEAD = 400.0
+        self._DEFAULT_LOOKAHEAD = 550.0
         # Any user-defined changes to the lookahead parameter will be clamped:
-        self._MIN_LOOKAHEAD = 250.0
-        self._MAX_LOOKAHEAD = 1000.0
+        self._MIN_LOOKAHEAD = 400.0
+        self._MAX_LOOKAHEAD = 2000.0
 
     def on_startup(self, ext_id):
         if omni.usd.get_context().get_stage() is None:
