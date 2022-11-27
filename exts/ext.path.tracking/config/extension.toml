@@ -1,5 +1,5 @@
 [package]
-version = "1.0.0-beta"
+version = "1.0.1-beta"
 title = "Vehicle Path Tracking Extension"
 description="Allows omni.physxvehicle to move along a user-defined trajectory via path tracking 'pure pursuit' inspired algorithm."
 readme  = "docs/index.rst"
