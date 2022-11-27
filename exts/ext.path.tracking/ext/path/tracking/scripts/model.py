@@ -1,5 +1,10 @@
 import omni
 from pxr import UsdGeom
+import omni.kit.commands
+from omni.physxvehicle.scripts.wizards import physxVehicleWizard as VehicleWizard
+from omni.physxvehicle.scripts.helpers.UnitScale import UnitScale
+from omni.physxvehicle.scripts.commands import *
+
 from .stepper import *
 from .path_tracker import PurePursuitScenario
 from .utils import Utils
@@ -10,6 +15,8 @@ from .utils import Utils
 # 
 # ==============================================================================
 class ExtensionModel:
+
+    ROOT_PATH = "/World"
 
     def __init__(self, extension_id, default_lookahead_distance, max_lookahed_distance, min_lookahed_distance):
         self._ext_id = extension_id
@@ -167,26 +174,35 @@ class ExtensionModel:
         path = omni.usd.get_stage_next_free_path(stage, "/GroundPlane", False)
         Utils.add_ground_plane(stage, path, self._up_axis)
 
+    def get_unit_scale(self, stage):
+        metersPerUnit = UsdGeom.GetStageMetersPerUnit(stage)
+        lengthScale = 1.0 / metersPerUnit
+        kilogramsPerUnit = UsdPhysics.GetStageKilogramsPerUnit(stage)
+        massScale = 1.0 / kilogramsPerUnit
+        return UnitScale(lengthScale, massScale)
+
     def load_sample_vehicle(self):
         """
         Load a preset vechile from a USD data provider shipped with the extension.
         """
         usd_context = omni.usd.get_context()
-        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
-        vehicle_prim_path = "/VehicleTemplate"
-        vehicle_prim_path = omni.usd.get_stage_next_free_path(
-            usd_context.get_stage(),
-            vehicle_prim_path, 
-            True
-        )
-        vehicle_usd_path = f"{ext_path}/data/usd/vehicle.usd"
-        omni.kit.commands.execute(
-            "CreateReferenceCommand",
-            path_to=vehicle_prim_path,
-            asset_path=vehicle_usd_path,
-            usd_context=usd_context,
-        )
-        return vehicle_prim_path
+        stage = usd_context.get_stage()
+        vehicleData = VehicleWizard.VehicleData(self.get_unit_scale(stage),
+        VehicleWizard.VehicleData.AXIS_Y, VehicleWizard.VehicleData.AXIS_Z)
+
+        root_vehicle_path = self.ROOT_PATH + VehicleWizard.VEHICLE_ROOT_BASE_PATH
+        root_vehicle_path = omni.usd.get_stage_next_free_path(stage, root_vehicle_path, True)
+        root_shared_path = self.ROOT_PATH + VehicleWizard.SHARED_DATA_ROOT_BASE_PATH
+        root_vehicle_path = omni.usd.get_stage_next_free_path(stage, root_shared_path, True)
+        
+        vehicleData.rootVehiclePath = root_vehicle_path
+        vehicleData.rootSharedPath = root_shared_path
+
+        (success, (messageList, scenePath)) = PhysXVehicleWizardCreateCommand.execute(vehicleData)
+        
+        assert(success)
+        assert(not messageList)
+        assert(scenePath and scenePath is not None)
 
     def load_sample_track(self):
         """
@@ -232,7 +248,7 @@ class ExtensionModel:
         Loads a preset scene with vehicle template and predefined curve for
         path tracking.
         """
-        default_prim_path = "/World"
+        default_prim_path = self.ROOT_PATH
         stage = omni.usd.get_context().get_stage()
         if not stage.GetPrimAtPath(default_prim_path):
             omni.kit.commands.execute(
