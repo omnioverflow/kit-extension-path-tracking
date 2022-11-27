@@ -15,7 +15,8 @@ from .vehicle import Axle, Vehicle
 #
 # ==============================================================================
 class PurePursuitScenario(Scenario):
-    def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit, close_loop_flag):
+    def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit,
+                 close_loop_flag, enable_rear_steering):
         super().__init__(secondsToRun=10000.0, timeStep=1.0/25.0)
 
         self._MAX_STEER_ANGLE_RADIANS = math.pi / 3
@@ -25,7 +26,11 @@ class PurePursuitScenario(Scenario):
         self._max_speed = 250.0
 
         self._stage = omni.usd.get_context().get_stage()
-        self._vehicle = Vehicle(self._stage.GetPrimAtPath(vehicle_path), self._MAX_STEER_ANGLE_RADIANS)
+        self._vehicle = Vehicle(
+            self._stage.GetPrimAtPath(vehicle_path),
+            self._MAX_STEER_ANGLE_RADIANS,
+            enable_rear_steering
+        )
         self._debug_render = DebugRenderer(self._vehicle.get_bbox_size())
         self._path_tracker = PurePursuitPathTracker(math.pi/4)
 

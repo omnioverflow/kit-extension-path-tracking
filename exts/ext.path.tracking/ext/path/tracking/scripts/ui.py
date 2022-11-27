@@ -138,6 +138,13 @@ class ExtensionUI():
                                 self._checkbox_trajectory_loop.model.add_value_changed_fn(
                                     self._controller._on_trajectory_loop_value_changed
                                 )
+                            with ui.HStack(width=width, height=height):
+                                ui.Label("Enable rear steering:")
+                                self._checkbox_rear_steering = ui.CheckBox(name="RearSteering")
+                                self._checkbox_rear_steering.model.set_value(False)
+                                self._checkbox_rear_steering.model.add_value_changed_fn(
+                                    self._controller._on_steering_changed
+                                )
 
                     self._controls_frame = ui.CollapsableFrame("CONTROLS",
                         collapsed=False,
