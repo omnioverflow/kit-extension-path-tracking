@@ -166,6 +166,7 @@ class PurePursuitPathTracker():
 
     def __init__(self, max_steer_angle_radians):
         self._max_steer_angle_radians = max_steer_angle_radians
+        self._debug_enabled = False
 
     def _steer_value_from_angle(self, angle):
         """
@@ -185,8 +186,9 @@ class PurePursuitPathTracker():
 
         lookahead_dist = np.linalg.norm(lookahead)
         forward_dist = np.linalg.norm(forward)
-        if lookahead_dist == 0.0 or forward_dist == 0.0:
-            raise Exception("Pure pursuit aglorithm: invalid state")
+        if self._debug_enabled:
+            if lookahead_dist == 0.0 or forward_dist == 0.0:
+                raise Exception("Pure pursuit aglorithm: invalid state")
 
         lookahead.Normalize()
         forward.Normalize()

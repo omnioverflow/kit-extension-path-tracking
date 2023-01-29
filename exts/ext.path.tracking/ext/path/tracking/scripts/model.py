@@ -204,6 +204,8 @@ class ExtensionModel:
         assert(not messageList)
         assert(scenePath and scenePath is not None)
 
+        return root_vehicle_path
+
     def load_sample_track(self):
         """
         Load a sample BasisCurve serialiazed in USD.
@@ -272,8 +274,13 @@ class ExtensionModel:
         vehicle_prim = stage.GetPrimAtPath(vehicle_path)
         metadata = vehicle_prim.GetCustomData()
         # Vehicle-to-Curve attachment of the preset is stored in the metadata.
-        attachment_preset = metadata[self._METADATA_KEY]
-        assert(attachment_preset is not None)
+        attachment_preset = metadata.get(self._METADATA_KEY)
+        if not attachment_preset or attachment_preset is None:
+            # Fallback to defaults
+            attachment_preset = {
+                "WizardVehicle" : vehicle_path,
+                "BasisCurve" : "/World/BasisCurves/BasisCurves"
+            }
         return attachment_preset
 
     def get_lookahead_distance(self):
