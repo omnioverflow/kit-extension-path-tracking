@@ -138,13 +138,15 @@ class ExtensionUI():
                                 self._checkbox_trajectory_loop.model.add_value_changed_fn(
                                     self._controller._on_trajectory_loop_value_changed
                                 )
-                            with ui.HStack(width=width, height=height):
-                                ui.Label("Enable rear steering:")
-                                self._checkbox_rear_steering = ui.CheckBox(name="RearSteering")
-                                self._checkbox_rear_steering.model.set_value(False)
-                                self._checkbox_rear_steering.model.add_value_changed_fn(
-                                    self._controller._on_steering_changed
-                                )
+                            # FIXME: Fix regression in rear steering behaviour.
+                            # (Issue #13)
+                            # with ui.HStack(width=width, height=height):
+                            #     ui.Label("Enable rear steering:")
+                            #     self._checkbox_rear_steering = ui.CheckBox(name="RearSteering")
+                            #     self._checkbox_rear_steering.model.set_value(False)
+                            #     self._checkbox_rear_steering.model.add_value_changed_fn(
+                            #         self._controller._on_steering_changed
+                            #     )
 
                     self._controls_frame = ui.CollapsableFrame("CONTROLS",
                         collapsed=False,
@@ -191,12 +193,14 @@ class ExtensionUI():
                                     clicked_fn=self._controller._on_click_load_basis_curve,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
-                                ui.Spacer(height=LINE_HEIGHT/8)
-                                ui.Button(
-                                    "Load a Forklift", 
-                                    clicked_fn=self._controller._on_click_load_forklift,
-                                    height=DEFAULT_BTN_HEIGHT
-                                )                                
+                                # FIXME: re-enable Forklift once the new updated
+                                # meta-data for it will be provided.
+                                # ui.Spacer(height=LINE_HEIGHT/8)
+                                # ui.Button(
+                                #     "Load a Forklift", 
+                                #     clicked_fn=self._controller._on_click_load_forklift,
+                                #     height=DEFAULT_BTN_HEIGHT
+                                # )                                
 
                     self._atachments_frame = ui.CollapsableFrame(
                         "VEHICLE-TO-CURVE ATTACHMENTS", 
