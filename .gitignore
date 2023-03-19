@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Omniverse App Symlink
+app
+
 # C extensions
 *.so
 
