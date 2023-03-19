@@ -50,12 +50,14 @@ IMPORTANT_BUTTON_STYLE = {
     }
 }
 
+
 class AttachedItem(ui.AbstractItem):
     """Single item of the model"""
 
     def __init__(self, text):
         super().__init__()
         self.name_model = ui.SimpleStringModel(text)
+
 
 class AttachmentModel(ui.AbstractItemModel):
     """
@@ -97,8 +99,9 @@ class AttachmentModel(ui.AbstractItemModel):
             i = i + 1
         self._item_changed(None)
 
+
 class ExtensionUI():
-    
+
     def __init__(self, controller):
         self._controller = controller
 
@@ -149,22 +152,22 @@ class ExtensionUI():
                             #     )
 
                     self._controls_frame = ui.CollapsableFrame("CONTROLS",
-                        collapsed=False,
-                        height=COLLAPSABLE_FRAME_HEIGHT,
-                        style=CollapsableFrameStyle
-                    )
+                                                               collapsed=False,
+                                                               height=COLLAPSABLE_FRAME_HEIGHT,
+                                                               style=CollapsableFrameStyle
+                                                               )
                     with self._controls_frame:
                         with ui.HStack():
                             with ui.VStack():
                                 ui.Button(
-                                    "Start Scenario", 
+                                    "Start Scenario",
                                     clicked_fn=self._controller._on_click_start_scenario,
                                     height=DEFAULT_BTN_HEIGHT,
                                     style=IMPORTANT_BUTTON_STYLE
                                 )
                                 ui.Spacer(height=LINE_HEIGHT/8)
                                 ui.Button(
-                                    "Stop Scenario", 
+                                    "Stop Scenario",
                                     clicked_fn=self._controller._on_click_stop_scenario,
                                     height=DEFAULT_BTN_HEIGHT,
                                     style=IMPORTANT_BUTTON_STYLE
@@ -177,19 +180,19 @@ class ExtensionUI():
                                 )
                                 ui.Line(height=LINE_HEIGHT/2)
                                 ui.Button(
-                                    "Load a ground plane", 
+                                    "Load a ground plane",
                                     clicked_fn=self._controller._on_click_load_ground_plane,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
                                 ui.Spacer(height=LINE_HEIGHT/8)
                                 ui.Button(
-                                    "Load a sample vehicle template", 
+                                    "Load a sample vehicle template",
                                     clicked_fn=self._controller._on_click_load_sample_vehicle,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
                                 ui.Spacer(height=LINE_HEIGHT/8)
                                 ui.Button(
-                                    "Load a sample BasisCurve", 
+                                    "Load a sample BasisCurve",
                                     clicked_fn=self._controller._on_click_load_basis_curve,
                                     height=DEFAULT_BTN_HEIGHT
                                 )
@@ -197,13 +200,13 @@ class ExtensionUI():
                                 # meta-data for it will be provided.
                                 # ui.Spacer(height=LINE_HEIGHT/8)
                                 # ui.Button(
-                                #     "Load a Forklift", 
+                                #     "Load a Forklift",
                                 #     clicked_fn=self._controller._on_click_load_forklift,
                                 #     height=DEFAULT_BTN_HEIGHT
-                                # )                                
+                                # )
 
                     self._atachments_frame = ui.CollapsableFrame(
-                        "VEHICLE-TO-CURVE ATTACHMENTS", 
+                        "VEHICLE-TO-CURVE ATTACHMENTS",
                         collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT,
                         style=CollapsableFrameStyle
                     )
@@ -215,12 +218,12 @@ class ExtensionUI():
                             )
                             ui.Spacer(height=LINE_HEIGHT/8)
                             ui.Button(
-                                "Attach Selected", 
+                                "Attach Selected",
                                 clicked_fn=self._controller._on_click_attach_selected,
                                 height=DEFAULT_BTN_HEIGHT,
                                 style=IMPORTANT_BUTTON_STYLE
                             )
-                            ui.Spacer(height=LINE_HEIGHT/8)                 
+                            ui.Spacer(height=LINE_HEIGHT/8)
                             ui.Button(
                                 "Clear All Attachments",
                                 clicked_fn=self._controller._on_click_clear_attachments

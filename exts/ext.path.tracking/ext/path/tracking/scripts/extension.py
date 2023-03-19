@@ -2,18 +2,19 @@ import omni.ext
 import omni.kit
 import omni.usd
 import carb
-from pxr import Tf, Usd
 
 import asyncio
 
 from .model import ExtensionModel
-from .ui import *
+from .ui import ExtensionUI
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # PathTrackingExtension
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class PathTrackingExtension(omni.ext.IExt):
 
     def __init__(self):
@@ -27,7 +28,7 @@ class PathTrackingExtension(omni.ext.IExt):
             # Workaround for running within test environment.
             omni.usd.get_context().new_stage()
 
-        # Usd listener could be used in the future if we could be interested 
+        # Usd listener could be used in the future if we could be interested
         # in recomputing changes in the vehicle planned trajectory "on the fly".
         # self._usd_listener = Tf.Notice.Register(Usd.Notice.ObjectsChanged, self._on_usd_change, None)
 
@@ -36,7 +37,7 @@ class PathTrackingExtension(omni.ext.IExt):
         )
 
         self._model = ExtensionModel(
-            ext_id, 
+            ext_id,
             default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
             max_lookahed_distance=self._MAX_LOOKAHEAD,
             min_lookahed_distance=self._MIN_LOOKAHEAD
@@ -62,9 +63,9 @@ class PathTrackingExtension(omni.ext.IExt):
     def _update_ui(self):
         self._ui.update_attachment_info(self._model._vehicle_to_curve_attachments.keys())
 
-    # ==========================================================================
-    # Callbacks
-    # ==========================================================================
+# ======================================================================================================================
+# Callbacks
+# ======================================================================================================================
 
     def _on_click_start_scenario(self):
         async def start_scenario(model):
@@ -90,7 +91,7 @@ class PathTrackingExtension(omni.ext.IExt):
         asyncio.run_coroutine_threadsafe(stop_scenario(), loop=run_loop)
 
     def _on_click_load_sample_vehicle(self):
-        self._model.load_sample_vehicle()        
+        self._model.load_sample_vehicle()
 
     def _on_click_load_ground_plane(self):
         self._model.load_ground_plane()
@@ -105,7 +106,7 @@ class PathTrackingExtension(omni.ext.IExt):
         selected_prim_paths = omni.usd.get_context().get_selection().get_selected_prim_paths()
         self._model.attach_selected_prims(selected_prim_paths)
         self._update_ui()
-    
+
     def _clear_attachments(self):
         async def stop_scenario():
             timeline = omni.timeline.get_timeline_interface()
@@ -133,7 +134,7 @@ class PathTrackingExtension(omni.ext.IExt):
             self._update_ui()
 
     def _on_usd_change(self, objects_changed, stage):
-        carb.log_info(f"_on_usd_change")
+        carb.log_info("_on_usd_change")
         for resync_path in objects_changed.GetResyncedPaths():
             carb.log_info(resync_path)
 

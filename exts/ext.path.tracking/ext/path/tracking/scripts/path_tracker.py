@@ -1,5 +1,4 @@
 import omni.usd
-import carb
 from pxr import Gf, UsdGeom
 
 import math
@@ -9,11 +8,13 @@ from .debug_draw import DebugRenderer
 from .stepper import Scenario
 from .vehicle import Axle, Vehicle
 
-# ==============================================================================
+# ======================================================================================================================
 #
 # PurePursuitScenario
 #
-# ==============================================================================
+# ======================================================================================================================
+
+
 class PurePursuitScenario(Scenario):
     def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit,
                  close_loop_flag, enable_rear_steering):
@@ -40,7 +41,7 @@ class PurePursuitScenario(Scenario):
         self._stopped = False
         self.draw_track = False
         self._close_loop = close_loop_flag
-    
+
     def on_start(self):
         self._vehicle.accelerate(1.0)
 
@@ -65,7 +66,7 @@ class PurePursuitScenario(Scenario):
         dest_position[1] = 0.0
 
         speed = self._vehicle.get_speed() * self._METERS_PER_UNIT
-        axle_front = Gf.Vec3f(self._vehicle.axle_position(Axle.FRONT))        
+        axle_front = Gf.Vec3f(self._vehicle.axle_position(Axle.FRONT))
         axle_rear = Gf.Vec3f(self._vehicle.axle_position(Axle.REAR))
         axle_front[1] = 0.0
         axle_rear[1] = 0.0
@@ -121,7 +122,7 @@ class PurePursuitScenario(Scenario):
         """
         forward = self._vehicle.forward()
         up = self._vehicle.up()
-        
+
         if self._trajectory and self.draw_track:
             self._trajectory.draw()
 
@@ -131,7 +132,7 @@ class PurePursuitScenario(Scenario):
         if dest_position:
             distance, is_close_to_dest = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
             if (is_close_to_dest):
-                dest_position = self._trajectory.next_point()                
+                dest_position = self._trajectory.next_point()
             else:
                 # Compute vehicle steering and acceleration
                 self._process(forward, up, dest_position, distance, is_close_to_dest)
@@ -149,15 +150,16 @@ class PurePursuitScenario(Scenario):
         self._close_loop = flag
         self._trajectory.set_close_loop(flag)
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # PurePursuitPathTracker
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class PurePursuitPathTracker():
     """
     Implements path tracking in spirit of Pure Pursuit algorithm.
- 
     References
     * Implementation of the Pure Pursuit Path tracking Algorithm,  RC Conlter:
     https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
@@ -192,7 +194,7 @@ class PurePursuitPathTracker():
 
         lookahead.Normalize()
         forward.Normalize()
-        
+
         # Compute a signed angle alpha between lookahead and forward vectors,
         # /!\ left-handed rotation assumed.
         dot = lookahead[0] * forward[0] + lookahead[2] * forward[2]
@@ -204,11 +206,13 @@ class PurePursuitPathTracker():
 
         return steer_angle
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # Trajectory
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class Trajectory():
     """
     A helper class to access coordinates of points that form a BasisCurve prim.

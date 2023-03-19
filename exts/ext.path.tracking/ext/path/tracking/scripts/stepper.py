@@ -12,13 +12,15 @@ import threading
 Based on Nvidia's sample from omni.physx.vehicle Physics extension.
 """
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # Scenario
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class Scenario:
-    def __init__(self, secondsToRun, timeStep = 1.0 / 60.0):
+    def __init__(self, secondsToRun, timeStep=1.0 / 60.0):
         self._targetIterationCount = math.ceil(secondsToRun / timeStep)
 
     def get_iteration_count(self):
@@ -34,11 +36,13 @@ class Scenario:
     def on_step(self, deltaTime, totalTime):
         pass
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # SimStepTracker
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class SimStepTracker:
     def __init__(self, scenario, scenarioDoneSignal):
         self._scenario = scenario
@@ -112,11 +116,13 @@ class SimStepTracker:
             else:
                 self._scenarioDoneSignal.set()
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # StageEventListener
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class StageEventListener:
     def __init__(self, simStepTracker):
         self._simStepTracker = simStepTracker
@@ -133,7 +139,7 @@ class StageEventListener:
         return self._stageIsClosing
 
     def _on_stage_event(self, event):
-        # Check out omni.usd docs for more information regarding 
+        # Check out omni.usd docs for more information regarding
         # omni.usd.StageEventType in particular.
         # https://docs.omniverse.nvidia.com/py/kit/source/extensions/omni.usd/docs/index.html
         if event.type == int(omni.usd.StageEventType.CLOSING):
@@ -145,16 +151,18 @@ class StageEventListener:
             self.restart_after_stop = False
         elif event.type == int(omni.usd.StageEventType.ANIMATION_STOP_PLAY):
             pass
-    
+
     def _stop(self, stageIsClosing=False):
         self._stageIsClosing = stageIsClosing
         self._simStepTracker.stop()
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # ScenarioManager
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class ScenarioManager:
     def __init__(self, scenario):
         self._scenario = scenario
@@ -173,7 +181,7 @@ class ScenarioManager:
         self._stageEventListener.cleanup()
         self._simStepTracker.abort()
 
-    @property 
+    @property
     def scenario(self):
         return self._scenario
 

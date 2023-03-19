@@ -1,6 +1,7 @@
 import omni.usd
 from pxr import UsdGeom, Sdf, Gf, UsdPhysics, PhysxSchema
 
+
 class Utils:
     @staticmethod
     def create_mesh_square_axis(stage, path, axis, halfSize):
@@ -62,8 +63,8 @@ class Utils:
         return mesh
 
     @staticmethod
-    def add_ground_plane(stage, planePath, axis, 
-            size=3000.0, position=Gf.Vec3f(0.0), color=Gf.Vec3f(0.2, 0.25, 0.25)):        
+    def add_ground_plane(stage, planePath, axis,
+                         size=3000.0, position=Gf.Vec3f(0.0), color=Gf.Vec3f(0.2, 0.25, 0.25)):
         # plane xform, so that we dont nest geom prims
         planePath = omni.usd.get_stage_next_free_path(stage, planePath, True)
         planeXform = UsdGeom.Xform.Define(stage, planePath)

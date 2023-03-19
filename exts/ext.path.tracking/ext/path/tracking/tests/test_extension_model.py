@@ -8,6 +8,9 @@ from omni.kit.test import AsyncTestCaseFailOnLogError
 
 from ..scripts.model import ExtensionModel
 
+# ======================================================================================================================
+
+
 class TestExtensionModel(AsyncTestCaseFailOnLogError):
     async def setUp(self):
         usd_context = omni.usd.get_context()
@@ -25,10 +28,10 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
 
     async def test_load_preset(self):
         ext_model = ExtensionModel(self._ext_id,
-            default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
-            max_lookahed_distance=self._MAX_LOOKAHEAD,
-            min_lookahed_distance=self._MIN_LOOKAHEAD
-        )
+                                   default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
+                                   max_lookahed_distance=self._MAX_LOOKAHEAD,
+                                   min_lookahed_distance=self._MIN_LOOKAHEAD
+                                   )
         ext_model.load_preset_scene()
 
         stage = omni.usd.get_context().get_stage()
@@ -41,11 +44,11 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         self.assertTrue(curve is not None)
 
     async def test_hello(self):
-        ext_model = ext_model = ExtensionModel(self._ext_id,
-            default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
-            max_lookahed_distance=self._MAX_LOOKAHEAD,
-            min_lookahed_distance=self._MIN_LOOKAHEAD
-        )
+        ext_model = ExtensionModel(self._ext_id,
+                                   default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
+                                   max_lookahed_distance=self._MAX_LOOKAHEAD,
+                                   min_lookahed_distance=self._MIN_LOOKAHEAD
+                                   )
 
     async def test_attachments_preset(self):
         # TODO: provide impl

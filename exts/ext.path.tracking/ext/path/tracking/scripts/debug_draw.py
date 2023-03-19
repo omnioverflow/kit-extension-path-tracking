@@ -1,6 +1,5 @@
 import carb
 from omni.debugdraw import get_debug_draw_interface
-import math
 
 """
     Note: DebugRenderer relies on `omni.debugdraw` utility to optionally provide
@@ -11,6 +10,8 @@ import math
     kept in the future in Kit-based apps.
 
 """
+
+
 class DebugRenderer():
     def __init__(self, vehicle_bbox_size):
         self._debug_draw = get_debug_draw_interface()
@@ -42,11 +43,11 @@ class DebugRenderer():
     def update_vehicle(self, vehicle):
         if not self._enabled:
             return
-            
+
         curr_vehicle_pos = vehicle.curr_position()
         forward = vehicle.forward()
         up = vehicle.up()
-         
+
         t = self._line_thickness * 2
         x = curr_vehicle_pos[0]
         y = curr_vehicle_pos[1]

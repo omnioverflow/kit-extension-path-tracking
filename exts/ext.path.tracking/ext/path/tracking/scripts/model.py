@@ -3,17 +3,20 @@ from pxr import UsdGeom
 import omni.kit.commands
 from omni.physxvehicle.scripts.wizards import physxVehicleWizard as VehicleWizard
 from omni.physxvehicle.scripts.helpers.UnitScale import UnitScale
-from omni.physxvehicle.scripts.commands import *
+from omni.physxvehicle.scripts.commands import PhysXVehicleWizardCreateCommand
 
-from .stepper import *
+from .stepper import ScenarioManager
 from .path_tracker import PurePursuitScenario
 from .utils import Utils
+from pxr import UsdPhysics
 
-# ==============================================================================
-# 
+# ======================================================================================================================
+#
 # ExtensionModel
-# 
-# ==============================================================================
+#
+# ======================================================================================================================
+
+
 class ExtensionModel:
 
     ROOT_PATH = "/World"
@@ -34,7 +37,7 @@ class ExtensionModel:
         self._scenario_managers = []
         self._dirty = False
         # Enables debug overlay with additional info regarding current vehicle state.
-        self._enable_debug=False
+        self._enable_debug = False
         # Closed trajectory loop
         self._closed_trajectory_loop = False
         self._rear_steering = False
@@ -47,7 +50,6 @@ class ExtensionModel:
         """
         Links a vehicle prim (must be WizardVehicle Xform) to the path (BasisCurve)
         to be tracked by the vechile.
-        
         Currently we expect two prims to be selected:
         - WizardVehicle
         - BasisCurve (corresponding curve/trajectory the vehicle must track)
@@ -67,15 +69,15 @@ class ExtensionModel:
 
     def attach_selected_prims(self, selected_prim_paths):
         """
-        Attaches selected prims paths from a stage to be considered as a 
+        Attaches selected prims paths from a stage to be considered as a
         vehicle and path to be tracked correspondingly.
-        The selected prim paths should include a WizardVehicle Xform that 
+        The selected prim paths should include a WizardVehicle Xform that
         represents vehicle, and a BasisCurves that represents tracked path.
         """
         if len(selected_prim_paths) == 2:
             self.attach_vehicle_to_curve(
-                wizard_vehicle_path = selected_prim_paths[0], 
-                curve_path = selected_prim_paths[1]
+                wizard_vehicle_path=selected_prim_paths[0],
+                curve_path=selected_prim_paths[1]
             )
 
     def attach_preset_metadata(self, metadata):
@@ -83,10 +85,10 @@ class ExtensionModel:
         Does vehicle-to-curve attachment from the metadata dictionary directly.
         """
         self.attach_vehicle_to_curve(
-            wizard_vehicle_path = metadata["WizardVehicle"],
-            curve_path = metadata["BasisCurve"]
+            wizard_vehicle_path=metadata["WizardVehicle"],
+            curve_path=metadata["BasisCurve"]
         )
-    
+
     def _cleanup_scenario_managers(self):
         """Cleans up scenario managers. Often useful when tracked data becomes obsolete."""
         self.stop_scenarios()
@@ -111,8 +113,8 @@ class ExtensionModel:
 
     def load_simulation(self, lookahead_distance):
         """
-        Load scenarios with vehicle-to-curve attachments. 
-        Note that multiple vehicles could run at the same time. 
+        Load scenarios with vehicle-to-curve attachments.
+        Note that multiple vehicles could run at the same time.
         """
         if self._dirty:
             self._cleanup_scenario_managers()
@@ -188,21 +190,21 @@ class ExtensionModel:
         usd_context = omni.usd.get_context()
         stage = usd_context.get_stage()
         vehicleData = VehicleWizard.VehicleData(self.get_unit_scale(stage),
-        VehicleWizard.VehicleData.AXIS_Y, VehicleWizard.VehicleData.AXIS_Z)
+                                                VehicleWizard.VehicleData.AXIS_Y, VehicleWizard.VehicleData.AXIS_Z)
 
         root_vehicle_path = self.ROOT_PATH + VehicleWizard.VEHICLE_ROOT_BASE_PATH
         root_vehicle_path = omni.usd.get_stage_next_free_path(stage, root_vehicle_path, True)
         root_shared_path = self.ROOT_PATH + VehicleWizard.SHARED_DATA_ROOT_BASE_PATH
         root_vehicle_path = omni.usd.get_stage_next_free_path(stage, root_shared_path, True)
-        
+
         vehicleData.rootVehiclePath = root_vehicle_path
         vehicleData.rootSharedPath = root_shared_path
 
         (success, (messageList, scenePath)) = PhysXVehicleWizardCreateCommand.execute(vehicleData)
-        
-        assert(success)
-        assert(not messageList)
-        assert(scenePath and scenePath is not None)
+
+        assert (success)
+        assert (not messageList)
+        assert (scenePath and scenePath is not None)
 
         return root_vehicle_path
 
@@ -215,7 +217,7 @@ class ExtensionModel:
         basis_curve_prim_path = "/BasisCurves"
         basis_curve_prim_path = omni.usd.get_stage_next_free_path(
             usd_context.get_stage(),
-            basis_curve_prim_path, 
+            basis_curve_prim_path,
             True
         )
         basis_curve_usd_path = f"{ext_path}/data/usd/curve.usd"
@@ -233,7 +235,7 @@ class ExtensionModel:
         forklift_prim_path = "/ForkliftRig"
         forklift_prim_path = omni.usd.get_stage_next_free_path(
             usd_context.get_stage(),
-            forklift_prim_path, 
+            forklift_prim_path,
             True
         )
         vehicle_usd_path = f"{ext_path}/data/usd/forklift/forklift_rig.usd"
@@ -278,8 +280,8 @@ class ExtensionModel:
         if not attachment_preset or attachment_preset is None:
             # Fallback to defaults
             attachment_preset = {
-                "WizardVehicle" : vehicle_path,
-                "BasisCurve" : "/World/BasisCurves/BasisCurves"
+                "WizardVehicle": vehicle_path,
+                "BasisCurve": "/World/BasisCurves/BasisCurves"
             }
         return attachment_preset
 
