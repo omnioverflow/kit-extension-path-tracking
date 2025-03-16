@@ -1,8 +1,8 @@
-import omni.usd
 from enum import IntEnum
-from pxr import Gf, Usd, UsdGeom, PhysxSchema
 
 import numpy as np
+import omni.usd
+from pxr import Gf, PhysxSchema, Usd, UsdGeom
 
 # ======================================================================================================================
 # Vehicle

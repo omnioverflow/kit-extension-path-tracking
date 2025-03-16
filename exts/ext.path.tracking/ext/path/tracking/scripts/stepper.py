@@ -1,12 +1,11 @@
-import omni.kit
-import omni.physx
-import omni.usd
-import omni.timeline
-
-from omni.physx.bindings._physx import SimulationEvent
-
 import math
 import threading
+
+import omni.kit
+import omni.physx
+import omni.timeline
+import omni.usd
+from omni.physx.bindings._physx import SimulationEvent
 
 """
 Based on Nvidia's sample from omni.physx.vehicle Physics extension.

@@ -1,6 +1,7 @@
 from ctypes import alignment
-import omni.ui as ui
 from typing import List
+
+import omni.ui as ui
 
 DEFAULT_BTN_HEIGHT = 22
 COLLAPSABLE_FRAME_HEIGHT = 32

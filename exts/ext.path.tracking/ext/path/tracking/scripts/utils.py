@@ -1,5 +1,5 @@
 import omni.usd
-from pxr import UsdGeom, Sdf, Gf, UsdPhysics, PhysxSchema
+from pxr import Gf, PhysxSchema, Sdf, UsdGeom, UsdPhysics
 
 
 class Utils:

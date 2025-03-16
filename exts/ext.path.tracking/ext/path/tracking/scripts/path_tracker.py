@@ -1,8 +1,8 @@
+import math
+
+import numpy as np
 import omni.usd
 from pxr import Gf, UsdGeom
-
-import math
-import numpy as np
 
 from .debug_draw import DebugRenderer
 from .stepper import Scenario
