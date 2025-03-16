@@ -1,9 +1,11 @@
+# pylint: disable=import-error, invalid-name
+import asyncio
+
+import carb
 import omni.ext
 import omni.kit
 import omni.usd
-import carb
-
-import asyncio
+from pxr import UsdGeom
 
 from .model import ExtensionModel
 from .ui import ExtensionUI
@@ -16,14 +18,26 @@ from .ui import ExtensionUI
 
 
 class PathTrackingExtension(omni.ext.IExt):
+    """Path Tracking Extension class"""
 
     def __init__(self):
-        self._DEFAULT_LOOKAHEAD = 550.0
+        super().__init__()
+
+        stage = omni.usd.get_context().get_stage()
+        meters_per_unit = UsdGeom.GetStageMetersPerUnit(stage)
+
+        self.DEFAULT_LOOKAHEAD = 5.5 / meters_per_unit
         # Any user-defined changes to the lookahead parameter will be clamped:
-        self._MIN_LOOKAHEAD = 400.0
-        self._MAX_LOOKAHEAD = 2000.0
+        self.MIN_LOOKAHEAD = 4.0 / meters_per_unit
+        self.MAX_LOOKAHEAD = 20.0 / meters_per_unit
+
+        self._usd_listener = None
+        self._stage_event_sub = None
+        self._model = None
+        self._ui = None
 
     def on_startup(self, ext_id):
+        """Called when the extension is loaded"""
         if omni.usd.get_context().get_stage() is None:
             # Workaround for running within test environment.
             omni.usd.get_context().new_stage()
@@ -38,14 +52,15 @@ class PathTrackingExtension(omni.ext.IExt):
 
         self._model = ExtensionModel(
             ext_id,
-            default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
-            max_lookahed_distance=self._MAX_LOOKAHEAD,
-            min_lookahed_distance=self._MIN_LOOKAHEAD
+            default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
+            max_lookahed_distance=self.MAX_LOOKAHEAD,
+            min_lookahed_distance=self.MIN_LOOKAHEAD
         )
         self._ui = ExtensionUI(self)
         self._ui.build_ui(self._model.get_lookahead_distance(), attachments=[])
 
     def on_shutdown(self):
+        """Called when the extension is unloaded"""
         timeline = omni.timeline.get_timeline_interface()
         if timeline.is_playing():
             timeline.stop()
@@ -77,8 +92,7 @@ class PathTrackingExtension(omni.ext.IExt):
             model.load_simulation(lookahead_distance)
             omni.timeline.get_timeline_interface().play()
 
-        run_loop = asyncio.get_event_loop()
-        asyncio.run_coroutine_threadsafe(start_scenario(self._model), loop=run_loop)
+        asyncio.ensure_future(start_scenario(self._model))
 
     def _on_click_stop_scenario(self):
         async def stop_scenario():
@@ -133,7 +147,7 @@ class PathTrackingExtension(omni.ext.IExt):
             self._model.clear_attachments()
             self._update_ui()
 
-    def _on_usd_change(self, objects_changed, stage):
+    def _on_usd_change(self, objects_changed, _stage):
         carb.log_info("_on_usd_change")
         for resync_path in objects_changed.GetResyncedPaths():
             carb.log_info(resync_path)

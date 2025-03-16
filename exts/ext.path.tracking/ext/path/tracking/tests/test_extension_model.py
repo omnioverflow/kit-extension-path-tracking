@@ -1,4 +1,5 @@
 from email.policy import default
+
 import omni.kit.app
 import omni.kit.commands
 import omni.usd
@@ -17,18 +18,18 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         ext_manager = omni.kit.app.get_app().get_extension_manager()
         self._ext_id = ext_manager.get_enabled_extension_id("ext.path.tracking")
 
-        self._DEFAULT_LOOKAHEAD = 550.0
-        self._MAX_LOOKAHEAD = 1200.0
-        self._MIN_LOOKAHEAD = 300.0
+        self.DEFAULT_LOOKAHEAD = 550.0
+        self.MAX_LOOKAHEAD = 1200.0
+        self.MIN_LOOKAHEAD = 300.0
 
     async def tearDown(self):
         self._ext_id = None
 
     async def test_load_preset(self):
         ext_model = ExtensionModel(self._ext_id,
-                                   default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
-                                   max_lookahed_distance=self._MAX_LOOKAHEAD,
-                                   min_lookahed_distance=self._MIN_LOOKAHEAD
+                                   default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
+                                   max_lookahed_distance=self.MAX_LOOKAHEAD,
+                                   min_lookahed_distance=self.MIN_LOOKAHEAD
                                    )
         ext_model.load_preset_scene()
 
@@ -43,9 +44,9 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
 
     async def test_hello(self):
         ext_model = ExtensionModel(self._ext_id,
-                                   default_lookahead_distance=self._DEFAULT_LOOKAHEAD,
-                                   max_lookahed_distance=self._MAX_LOOKAHEAD,
-                                   min_lookahed_distance=self._MIN_LOOKAHEAD
+                                   default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
+                                   max_lookahed_distance=self.MAX_LOOKAHEAD,
+                                   min_lookahed_distance=self.MIN_LOOKAHEAD
                                    )
 
     async def test_attachments_preset(self):

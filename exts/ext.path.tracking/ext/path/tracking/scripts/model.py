@@ -1,14 +1,15 @@
+import carb
 import omni
-from pxr import UsdGeom
 import omni.kit.commands
-from omni.physxvehicle.scripts.wizards import physxVehicleWizard as VehicleWizard
-from omni.physxvehicle.scripts.helpers.UnitScale import UnitScale
 from omni.physxvehicle.scripts.commands import PhysXVehicleWizardCreateCommand
+from omni.physxvehicle.scripts.helpers.UnitScale import UnitScale
+from omni.physxvehicle.scripts.wizards import \
+    physxVehicleWizard as VehicleWizard
+from pxr import PhysxSchema, UsdGeom, UsdPhysics
 
-from .stepper import ScenarioManager
 from .path_tracker import PurePursuitScenario
+from .stepper import ScenarioManager
 from .utils import Utils
-from pxr import UsdPhysics
 
 # ======================================================================================================================
 #
@@ -20,15 +21,18 @@ from pxr import UsdPhysics
 class ExtensionModel:
 
     ROOT_PATH = "/World"
+    VEHICLE_PRIM_NAME = "Vehicle"
 
     def __init__(self, extension_id, default_lookahead_distance, max_lookahed_distance, min_lookahed_distance):
         self._ext_id = extension_id
         self._METADATA_KEY = f"{extension_id.split('-')[0]}.metadata"
         self._lookahead_distance = default_lookahead_distance
-        self._min_lookahead_distance = min_lookahed_distance
-        self._max_lookahead_distance = max_lookahed_distance
-        self.METERS_PER_UNIT = 0.01
-        UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.METERS_PER_UNIT)
+        self.MIN_LOOKAHEAD_distance = min_lookahed_distance
+        self.MAX_LOOKAHEAD_distance = max_lookahed_distance
+
+        # self.METERS_PER_UNIT = 0.01
+        # UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.METERS_PER_UNIT)
+
         # Currently the extension expects Y-axis to be up-axis.
         # Conventionally Y-up is often used in graphics, including Kit-apps.
         # TODO: refactor impl to avoid breaking things when changing up-axis settings.
@@ -63,8 +67,25 @@ class ExtensionModel:
             prim0, prim1 = prim1, prim0
             wizard_vehicle_path, curve_path = curve_path, wizard_vehicle_path
         if prim0.IsA(UsdGeom.Xformable):
-            key = wizard_vehicle_path + "/Vehicle"
+            key = None
+            if prim0.HasAPI(PhysxSchema.PhysxVehicleAPI):
+                key = wizard_vehicle_path
+            else:
+                try:
+                    # fallback to the first child with PhysxVehicleAPI
+                    for child in prim0.GetChildren():
+                        if child.HasAPI(PhysxSchema.PhysxVehicleAPI):
+                            key = child.GetPath()
+                            break
+                except Exception as e:  # pylint: disable=broad-except
+                    carb.log_warning(f"Failed to attach vehicle to curve: {e}")
+                    key = None
+
+            if key is None:
+                carb.log_warning(f"Failed to attach vehicle to curve: {wizard_vehicle_path} is not a vehicle prim.")
+                return
             self._vehicle_to_curve_attachments[key] = curve_path
+
         self._dirty = True
 
     def attach_selected_prims(self, selected_prim_paths):
@@ -292,8 +313,8 @@ class ExtensionModel:
         """Updates the lookahead distance parameter for pure pursuit"""
 
         clamped_distance = max(
-            self._min_lookahead_distance,
-            min(self._max_lookahead_distance, distance)
+            self.MIN_LOOKAHEAD_distance,
+            min(self.MAX_LOOKAHEAD_distance, distance)
         )
 
         for scenario_manager in self._scenario_managers:
