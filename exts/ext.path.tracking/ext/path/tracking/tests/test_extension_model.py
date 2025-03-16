@@ -4,8 +4,6 @@ import omni.kit.commands
 import omni.usd
 from omni.kit.test import AsyncTestCaseFailOnLogError
 
-# from omni.kit.test_suite.helpers import wait_stage_loading
-
 from ..scripts.model import ExtensionModel
 
 # ======================================================================================================================
