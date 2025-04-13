@@ -1,3 +1,4 @@
+"""Naive implementation of vehicle path tracking as an Omniverse extension."""
 # pylint: disable=import-error, invalid-name
 import asyncio
 
@@ -9,12 +10,6 @@ from pxr import UsdGeom
 
 from .model import ExtensionModel
 from .ui import ExtensionUI
-
-# ======================================================================================================================
-#
-# PathTrackingExtension
-#
-# ======================================================================================================================
 
 
 class PathTrackingExtension(omni.ext.IExt):
@@ -76,11 +71,7 @@ class PathTrackingExtension(omni.ext.IExt):
         self._model = None
 
     def _update_ui(self):
-        self._ui.update_attachment_info(self._model._vehicle_to_curve_attachments.keys())
-
-# ======================================================================================================================
-# Callbacks
-# ======================================================================================================================
+        self._ui.update_attachment_info(self._model.vehicle_to_curve_attachments.keys())
 
     def _on_click_start_scenario(self):
         async def start_scenario(model):

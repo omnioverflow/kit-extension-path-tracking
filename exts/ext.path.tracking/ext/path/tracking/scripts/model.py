@@ -1,24 +1,20 @@
+"""Extension model class for path tracking extension."""
+# pylint: disable=import-error, invalid-name
 import carb
 import omni
 import omni.kit.commands
 from omni.physxvehicle.scripts.commands import PhysXVehicleWizardCreateCommand
 from omni.physxvehicle.scripts.helpers.UnitScale import UnitScale
-from omni.physxvehicle.scripts.wizards import \
-    physxVehicleWizard as VehicleWizard
+from omni.physxvehicle.scripts.wizards import physxVehicleWizard as VehicleWizard
 from pxr import PhysxSchema, UsdGeom, UsdPhysics
 
 from .path_tracker import PurePursuitScenario
 from .stepper import ScenarioManager
 from .utils import Utils
 
-# ======================================================================================================================
-#
-# ExtensionModel
-#
-# ======================================================================================================================
-
 
 class ExtensionModel:
+    """Extension model class"""
 
     ROOT_PATH = "/World"
     VEHICLE_PRIM_NAME = "Vehicle"
@@ -30,14 +26,14 @@ class ExtensionModel:
         self.MIN_LOOKAHEAD_distance = min_lookahed_distance
         self.MAX_LOOKAHEAD_distance = max_lookahed_distance
 
-        # self.METERS_PER_UNIT = 0.01
-        # UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.METERS_PER_UNIT)
+        # self.meters_per_unit = 0.01
+        # UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.meters_per_unit)
+        self.meters_per_unit = UsdGeom.GetStageMetersPerUnit(omni.usd.get_context().get_stage())
 
-        # Currently the extension expects Y-axis to be up-axis.
-        # Conventionally Y-up is often used in graphics, including Kit-apps.
-        # TODO: refactor impl to avoid breaking things when changing up-axis settings.
-        self._up_axis = "Y"
-        self._vehicle_to_curve_attachments = {}
+        stage = omni.usd.get_context().get_stage()
+        self._up_axis = UsdGeom.GetStageUpAxis(stage).upper()
+
+        self.vehicle_to_curve_attachments = {}
         self._scenario_managers = []
         self._dirty = False
         # Enables debug overlay with additional info regarding current vehicle state.
@@ -47,6 +43,7 @@ class ExtensionModel:
         self._rear_steering = False
 
     def teardown(self):
+        """Cleans up the extension model."""
         self.stop_scenarios()
         self._scenario_managers = None
 
@@ -84,7 +81,7 @@ class ExtensionModel:
             if key is None:
                 carb.log_warning(f"Failed to attach vehicle to curve: {wizard_vehicle_path} is not a vehicle prim.")
                 return
-            self._vehicle_to_curve_attachments[key] = curve_path
+            self.vehicle_to_curve_attachments[key] = curve_path
 
         self._dirty = True
 
@@ -123,7 +120,7 @@ class ExtensionModel:
         Removes previously added path tracking attachments.
         """
         self._cleanup_scenario_managers()
-        self._vehicle_to_curve_attachments.clear()
+        self.vehicle_to_curve_attachments.clear()
 
     def stop_scenarios(self):
         """
@@ -140,18 +137,20 @@ class ExtensionModel:
         if self._dirty:
             self._cleanup_scenario_managers()
 
-            for vehicle_path in self._vehicle_to_curve_attachments:
+            for vehicle_path, curve in self.vehicle_to_curve_attachments.items():
                 scenario = PurePursuitScenario(
                     lookahead_distance,
                     vehicle_path,
-                    self._vehicle_to_curve_attachments[vehicle_path],
-                    self.METERS_PER_UNIT,
+                    curve,
+                    self.meters_per_unit,
                     self._closed_trajectory_loop,
-                    self._rear_steering
+                    self._rear_steering,
                 )
                 scenario.enable_debug(self._enable_debug)
+
                 scenario_manager = ScenarioManager(scenario)
                 self._scenario_managers.append(scenario_manager)
+
             self._dirty = False
 
         self.recompute_trajectories()
@@ -161,9 +160,9 @@ class ExtensionModel:
         Update tracked trajectories. Often needed when BasisCurve defining a
         trajectory in the scene was updated by a user.
         """
-        for i in range(len(self._scenario_managers)):
-            manager = self._scenario_managers[i]
+        for manager in self._scenario_managers:
             manager.scenario.recompute_trajectory()
+
 
     def set_enable_debug(self, flag):
         """
@@ -198,6 +197,9 @@ class ExtensionModel:
         Utils.add_ground_plane(stage, path, self._up_axis)
 
     def get_unit_scale(self, stage):
+        """
+        Returns the unit scale for the current stage.
+        """
         metersPerUnit = UsdGeom.GetStageMetersPerUnit(stage)
         lengthScale = 1.0 / metersPerUnit
         kilogramsPerUnit = UsdPhysics.GetStageKilogramsPerUnit(stage)
@@ -223,9 +225,9 @@ class ExtensionModel:
 
         (success, (messageList, scenePath)) = PhysXVehicleWizardCreateCommand.execute(vehicleData)
 
-        assert (success)
-        assert (not messageList)
-        assert (scenePath and scenePath is not None)
+        assert success
+        assert not messageList
+        assert scenePath and scenePath is not None
 
         return root_vehicle_path
 
@@ -307,6 +309,7 @@ class ExtensionModel:
         return attachment_preset
 
     def get_lookahead_distance(self):
+        """Returns the lookahead distance parameter for pure pursuit"""
         return self._lookahead_distance
 
     def update_lookahead_distance(self, distance):

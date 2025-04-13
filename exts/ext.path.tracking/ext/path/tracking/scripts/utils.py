@@ -1,5 +1,72 @@
+import numpy as np
 import omni.usd
 from pxr import Gf, PhysxSchema, Sdf, UsdGeom, UsdPhysics
+
+# utils/up_axis.py
+
+
+
+class UpAxisHelper:
+    """
+    Static utility class for accessing up-axis metadata from the USD stage
+    and performing up-axis–aware vector operations.
+    """
+
+    _initialized = False
+    _up_axis_token = None
+    _up_axis_index: int = -1
+    _flat_indices = None
+
+    @staticmethod
+    def _initialize():
+        if UpAxisHelper._initialized:
+            return
+
+        stage = omni.usd.get_context().get_stage()
+        if not stage:
+            raise RuntimeError("[UpAxisHelper] Failed to retrieve USD stage context.")
+
+        UpAxisHelper._up_axis_token = UsdGeom.GetStageUpAxis(stage).upper()
+        UpAxisHelper._up_axis_index = {"X": 0, "Y": 1, "Z": 2}[UpAxisHelper._up_axis_token]
+        UpAxisHelper._flat_indices = [i for i in range(3) if i != UpAxisHelper._up_axis_index]
+
+        UpAxisHelper._initialized = True
+
+    @staticmethod
+    def get_up_axis_index() -> int:
+        """Returns the index (0=X, 1=Y, 2=Z) of the stage's up-axis."""
+        UpAxisHelper._initialize()
+        return UpAxisHelper._up_axis_index
+
+    @staticmethod
+    def get_flat_indices():
+        """Returns the two indices that are not the up-axis."""
+        UpAxisHelper._initialize()
+        return UpAxisHelper._flat_indices
+
+    @staticmethod
+    def flatten(vec3):
+        """
+        Projects a 3D vector onto the ground plane (by removing the up-axis component).
+
+        Args:
+            vec3 (list | tuple | Gf.Vec3f): Input 3D vector.
+
+        Returns:
+            np.ndarray: 2D flattened vector.
+        """
+        UpAxisHelper._initialize()
+        return np.array([vec3[i] for i in UpAxisHelper._flat_indices])
+
+    @staticmethod
+    def up_vector():
+        """
+        Returns a Gf.Vec3f unit vector along the up-axis (X, Y, or Z).
+        """
+        UpAxisHelper._initialize()
+        vec = [0.0, 0.0, 0.0]
+        vec[UpAxisHelper._up_axis_index] = 1.0
+        return Gf.Vec3f(*vec)
 
 
 class Utils:

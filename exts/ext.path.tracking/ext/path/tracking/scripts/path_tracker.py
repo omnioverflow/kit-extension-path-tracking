@@ -1,4 +1,6 @@
+"""Path tracking implementation for vehicle simulation."""
 import math
+from typing import Optional
 
 import numpy as np
 import omni.usd
@@ -6,16 +8,14 @@ from pxr import Gf, UsdGeom
 
 from .debug_draw import DebugRenderer
 from .stepper import Scenario
+from .utils import UpAxisHelper
 from .vehicle import Axle, Vehicle
-
-# ======================================================================================================================
-#
-# PurePursuitScenario
-#
-# ======================================================================================================================
 
 
 class PurePursuitScenario(Scenario):
+    """
+    Implements a path tracking scenario for vehicle simulation in Omniverse.
+    """
     def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit,
                  close_loop_flag, enable_rear_steering):
         super().__init__(secondsToRun=10000.0, timeStep=1.0/25.0)
@@ -23,7 +23,7 @@ class PurePursuitScenario(Scenario):
         self._MAX_STEER_ANGLE_RADIANS = math.pi / 3
 
         self._lookahead_distance = lookahead_distance
-        self._METERS_PER_UNIT = meters_per_unit
+        self.meters_per_unit = meters_per_unit
         self._max_speed = 250.0
 
         self._stage = omni.usd.get_context().get_stage()
@@ -42,6 +42,12 @@ class PurePursuitScenario(Scenario):
         self.draw_track = False
         self._close_loop = close_loop_flag
 
+        up_axis_token = UsdGeom.GetStageUpAxis(self._stage)
+        self._up_axis_index = {"X": 0, "Y": 1, "Z": 2}[up_axis_token.upper()]
+        self._flat_indices = [i for i in range(3) if i != self._up_axis_index]
+        up = UpAxisHelper.get_up_axis_index()
+        self._steer_sign = 1 if up == 2 else -1
+
     def on_start(self):
         self._vehicle.accelerate(1.0)
 
@@ -50,28 +56,19 @@ class PurePursuitScenario(Scenario):
 
     def _process(self, forward, up, dest_position, distance=None, is_close_to_dest=False):
         """
-        Steering/accleleration vehicle control heuristic.
+        Steering/acceleration vehicle control heuristic, generalized for any stage up-axis.
         """
-        if (distance is None):
+        if distance is None:
             distance, is_close_to_dest = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
+
         curr_vehicle_pos = self._vehicle.curr_position()
 
-        self._debug_render.update_vehicle(self._vehicle)
+        speed = self._vehicle.get_speed() * self.meters_per_unit
+        axle_front = self._vehicle.axle_position(Axle.FRONT)
+        axle_rear = self._vehicle.axle_position(Axle.REAR)
+
+        self._debug_render.draw_vehicle_debug(self._vehicle, self._trajectory, axle_front, axle_rear, forward, up)
         self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
-
-        # FIXME: - currently the extension expect Y-up axis which is not flexible.
-        # Project onto XZ plane
-        curr_vehicle_pos[1] = 0.0
-        forward[1] = 0.0
-        dest_position[1] = 0.0
-
-        speed = self._vehicle.get_speed() * self._METERS_PER_UNIT
-        axle_front = Gf.Vec3f(self._vehicle.axle_position(Axle.FRONT))
-        axle_rear = Gf.Vec3f(self._vehicle.axle_position(Axle.REAR))
-        axle_front[1] = 0.0
-        axle_rear[1] = 0.0
-
-        # self._debug_render.update_path_tracking(axle_front, axle_rear, forward, dest_position)
 
         steer_angle = self._path_tracker.on_step(
             axle_front,
@@ -81,16 +78,18 @@ class PurePursuitScenario(Scenario):
             curr_vehicle_pos
         )
 
-        if steer_angle < 0:
+        asjusted_steer_angle = steer_angle * self._steer_sign
+        if asjusted_steer_angle < 0:
             self._vehicle.steer_left(abs(steer_angle))
         else:
-            self._vehicle.steer_right(steer_angle)
-        # Accelerate/break control heuristic
+            self._vehicle.steer_right(abs(steer_angle))
+
+        # Heuristic for throttle/brake control
         if abs(steer_angle) > 0.1 and speed > 5.0:
             self._vehicle.brake(1.0)
             self._vehicle.accelerate(0.0)
         else:
-            if (speed >= self._max_speed):
+            if speed >= self._max_speed:
                 self._vehicle.brake(0.8)
                 self._vehicle.accelerate(0.0)
             else:
@@ -102,10 +101,11 @@ class PurePursuitScenario(Scenario):
         self._vehicle.brake(1.0)
 
     def set_meters_per_unit(self, value):
-        self._METERS_PER_UNIT = value
+        """Sets meters per unit for the path tracker."""
+        self.meters_per_unit = value
 
     def teardown(self):
-        super().abort()
+        """Tears down the path tracker."""
         self._dest.teardown()
         self._dest = None
         self._stage = None
@@ -114,7 +114,8 @@ class PurePursuitScenario(Scenario):
         self._path_tracker = None
 
     def enable_debug(self, flag):
-        self._debug_render.enable(flag)
+        """Enables/disables debug rendering."""
+        self._debug_render.enable = flag
 
     def on_step(self, deltaTime, totalTime):
         """
@@ -141,12 +142,15 @@ class PurePursuitScenario(Scenario):
             self._full_stop()
 
     def recompute_trajectory(self):
+        """Recomputes trajectory points."""
         self._trajectory = Trajectory(self._trajectory_prim_path, self._close_loop)
 
     def set_lookahead_distance(self, distance):
+        """Sets lookahead distance for the path tracker."""
         self._lookahead_distance = distance
 
     def set_close_trajectory_loop(self, flag):
+        """Sets trajectory loop flag."""
         self._close_loop = flag
         self._trajectory.set_close_loop(flag)
 
@@ -176,7 +180,33 @@ class PurePursuitPathTracker():
         """
         return np.clip(angle / self._max_steer_angle_radians, -1.0, 1.0)
 
-    def on_step(self, front_axle_pos, rear_axle_pos, forward, dest_pos, curr_pos):
+    def on_step(self, front_axle_pos, rear_axle_pos, forward_vec, dest_vec, curr_pos):
+        # Flatten inputs
+        front_axle_flat = UpAxisHelper.flatten(front_axle_pos)
+        rear_axle_flat = UpAxisHelper.flatten(rear_axle_pos)
+        forward_flat = UpAxisHelper.flatten(forward_vec)
+        dest_flat = UpAxisHelper.flatten(dest_vec)
+
+        lookahead = dest_flat - rear_axle_flat
+        forward = front_axle_flat - rear_axle_flat
+
+        lookahead_dist = np.linalg.norm(lookahead)
+        forward_dist = np.linalg.norm(forward)
+
+        if self._debug_enabled and (lookahead_dist == 0.0 or forward_dist == 0.0):
+            raise Exception("Pure pursuit: zero length vectors")
+
+        lookahead /= lookahead_dist
+        forward /= forward_dist
+
+        dot = np.dot(lookahead, forward)
+        cross = lookahead[0] * forward[1] - lookahead[1] * forward[0]  # 2D cross product (Z-component)
+        alpha = math.atan2(cross, dot)
+
+        theta = math.atan(2.0 * forward_dist * math.sin(alpha) / lookahead_dist)
+        return self._steer_value_from_angle(theta)
+
+    def on_step_v0(self, front_axle_pos, rear_axle_pos, forward, dest_pos, curr_pos):
         """
         Recomputes vehicle's steering angle on a simulation step.
         """
@@ -206,18 +236,15 @@ class PurePursuitPathTracker():
 
         return steer_angle
 
-# ======================================================================================================================
-#
-# Trajectory
-#
-# ======================================================================================================================
-
 
 class Trajectory():
     """
     A helper class to access coordinates of points that form a BasisCurve prim.
     """
     def __init__(self, prim_path, close_loop=True):
+        self._points: list[Gf.Vec3f] = []
+        self._points_cache: Optional[list[Gf.Vec3f]] = None
+
         stage = omni.usd.get_context().get_stage()
         basis_curves = UsdGeom.BasisCurves.Get(stage, prim_path)
         if (basis_curves and basis_curves is not None):
@@ -236,6 +263,15 @@ class Trajectory():
             self._num_points = 0
         self._pointer = 0
         self._close_loop = close_loop
+
+    def get_all_points(self) -> list:
+        """
+        Returns all trajectory points as a list of Gf.Vec3f.
+        Uses internal cache for performance.
+        """
+        if self._points_cache is None:
+            self._points_cache = list(self._points) if self._points else []
+        return self._points_cache
 
     def point(self):
         """

@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 120
+target-version = ["py310"]  # Adjust to your Python version
+skip-string-normalization = true  # Optional
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.mypy]
+python_version = "3.10"  # Adjust to your Python version
+ignore_missing_imports = true
+strict = true
+
+[tool.pylint]
+max-line-length = 120
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = ["import-error"]
