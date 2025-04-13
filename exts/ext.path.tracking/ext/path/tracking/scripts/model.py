@@ -1,4 +1,5 @@
 """Extension model class for path tracking extension."""
+
 # pylint: disable=import-error, invalid-name
 import carb
 import omni
@@ -47,65 +48,86 @@ class ExtensionModel:
         self.stop_scenarios()
         self._scenario_managers = None
 
-    def attach_vehicle_to_curve(self, wizard_vehicle_path, curve_path):
+    def attach_vehicle_to_curve(self, selected_paths: list[str]):
         """
-        Links a vehicle prim (must be WizardVehicle Xform) to the path (BasisCurve)
-        to be tracked by the vechile.
-        Currently we expect two prims to be selected:
-        - WizardVehicle
-        - BasisCurve (corresponding curve/trajectory the vehicle must track)
-
+        Links a vehicle prim (having PhysxVehicleAPI) to a BasisCurve prim for trajectory tracking.
+        Supports multiple selected prims and finds:
+        - One vehicle (recursively, if needed)
+        - One curve (recursively, if needed)
         """
         stage = omni.usd.get_context().get_stage()
-        prim0 = stage.GetPrimAtPath(wizard_vehicle_path)
-        prim1 = stage.GetPrimAtPath(curve_path)
-        if prim0.IsA(UsdGeom.BasisCurves):
-            # Fix order of selected prims: WizardVehicle should be first
-            prim0, prim1 = prim1, prim0
-            wizard_vehicle_path, curve_path = curve_path, wizard_vehicle_path
-        if prim0.IsA(UsdGeom.Xformable):
-            key = None
-            if prim0.HasAPI(PhysxSchema.PhysxVehicleAPI):
-                key = wizard_vehicle_path
-            else:
-                try:
-                    # fallback to the first child with PhysxVehicleAPI
-                    for child in prim0.GetChildren():
-                        if child.HasAPI(PhysxSchema.PhysxVehicleAPI):
-                            key = child.GetPath()
-                            break
-                except Exception as e:  # pylint: disable=broad-except
-                    carb.log_warning(f"Failed to attach vehicle to curve: {e}")
-                    key = None
 
-            if key is None:
-                carb.log_warning(f"Failed to attach vehicle to curve: {wizard_vehicle_path} is not a vehicle prim.")
-                return
-            self.vehicle_to_curve_attachments[key] = curve_path
+        vehicle_prim = None
+        vehicle_path = None
+        curve_prim = None
+        curve_path = None
 
+        def find_vehicle_prim(prim):
+            if prim.HasAPI(PhysxSchema.PhysxVehicleAPI):
+                return prim
+            for child in prim.GetChildren():
+                found = find_vehicle_prim(child)
+                if found:
+                    return found
+            return None
+
+        def find_curve_prim(prim):
+            if prim.IsA(UsdGeom.BasisCurves):
+                return prim
+            for child in prim.GetChildren():
+                found = find_curve_prim(child)
+                if found:
+                    return found
+            return None
+
+        for path in selected_paths:
+            prim = stage.GetPrimAtPath(path)
+            if not prim or not prim.IsValid():
+                continue
+
+            found_vehicle = find_vehicle_prim(prim)
+            if found_vehicle and vehicle_prim is None:
+                vehicle_prim = found_vehicle
+                vehicle_path = found_vehicle.GetPath()
+
+            found_curve = find_curve_prim(prim)
+            if found_curve and curve_prim is None:
+                curve_prim = found_curve
+                curve_path = found_curve.GetPath()
+
+        if not vehicle_prim:
+            carb.log_warn("[attach_vehicle_to_curve] No vehicle prim with PhysxVehicleAPI found.")
+            return
+        if not curve_prim:
+            carb.log_warn("[attach_vehicle_to_curve] No BasisCurve prim found.")
+            return
+
+        self.vehicle_to_curve_attachments[vehicle_path] = curve_path
         self._dirty = True
+        carb.log_info(f"[attach_vehicle_to_curve] Attached {vehicle_path} to {curve_path}")
 
     def attach_selected_prims(self, selected_prim_paths):
         """
-        Attaches selected prims paths from a stage to be considered as a
-        vehicle and path to be tracked correspondingly.
-        The selected prim paths should include a WizardVehicle Xform that
-        represents vehicle, and a BasisCurves that represents tracked path.
+        Attaches selected prims from a stage to be considered as:
+        - a vehicle (must contain PhysxVehicleAPI)
+        - a tracked path (must be a BasisCurve)
+
+        If no prims are selected, the root prim is used as fallback.
         """
-        if len(selected_prim_paths) == 2:
-            self.attach_vehicle_to_curve(
-                wizard_vehicle_path=selected_prim_paths[0],
-                curve_path=selected_prim_paths[1]
-            )
+        if not selected_prim_paths:
+            stage = omni.usd.get_context().get_stage()
+            root_prim = stage.GetDefaultPrim()
+            if not root_prim or not root_prim.IsValid():
+                root_prim = stage.GetPseudoRoot()
+            selected_prim_paths = [root_prim.GetPath()]
+
+        self.attach_vehicle_to_curve(selected_prim_paths)
 
     def attach_preset_metadata(self, metadata):
         """
         Does vehicle-to-curve attachment from the metadata dictionary directly.
         """
-        self.attach_vehicle_to_curve(
-            wizard_vehicle_path=metadata["WizardVehicle"],
-            curve_path=metadata["BasisCurve"]
-        )
+        self.attach_vehicle_to_curve([metadata["WizardVehicle"], metadata["BasisCurve"]])
 
     def _cleanup_scenario_managers(self):
         """Cleans up scenario managers. Often useful when tracked data becomes obsolete."""
@@ -163,7 +185,6 @@ class ExtensionModel:
         for manager in self._scenario_managers:
             manager.scenario.recompute_trajectory()
 
-
     def set_enable_debug(self, flag):
         """
         Enables/disables debug overlay.
@@ -212,8 +233,9 @@ class ExtensionModel:
         """
         usd_context = omni.usd.get_context()
         stage = usd_context.get_stage()
-        vehicleData = VehicleWizard.VehicleData(self.get_unit_scale(stage),
-                                                VehicleWizard.VehicleData.AXIS_Y, VehicleWizard.VehicleData.AXIS_Z)
+        vehicleData = VehicleWizard.VehicleData(
+            self.get_unit_scale(stage), VehicleWizard.VehicleData.AXIS_Y, VehicleWizard.VehicleData.AXIS_Z
+        )
 
         root_vehicle_path = self.ROOT_PATH + VehicleWizard.VEHICLE_ROOT_BASE_PATH
         root_vehicle_path = omni.usd.get_stage_next_free_path(stage, root_vehicle_path, True)
@@ -238,11 +260,7 @@ class ExtensionModel:
         usd_context = omni.usd.get_context()
         ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
         basis_curve_prim_path = "/BasisCurves"
-        basis_curve_prim_path = omni.usd.get_stage_next_free_path(
-            usd_context.get_stage(),
-            basis_curve_prim_path,
-            True
-        )
+        basis_curve_prim_path = omni.usd.get_stage_next_free_path(usd_context.get_stage(), basis_curve_prim_path, True)
         basis_curve_usd_path = f"{ext_path}/data/usd/curve.usd"
         omni.kit.commands.execute(
             "CreateReferenceCommand",
@@ -256,11 +274,7 @@ class ExtensionModel:
         usd_context = omni.usd.get_context()
         ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
         forklift_prim_path = "/ForkliftRig"
-        forklift_prim_path = omni.usd.get_stage_next_free_path(
-            usd_context.get_stage(),
-            forklift_prim_path,
-            True
-        )
+        forklift_prim_path = omni.usd.get_stage_next_free_path(usd_context.get_stage(), forklift_prim_path, True)
         vehicle_usd_path = f"{ext_path}/data/usd/forklift/forklift_rig.usd"
         omni.kit.commands.execute(
             "CreateReferenceCommand",
@@ -279,8 +293,7 @@ class ExtensionModel:
         stage = omni.usd.get_context().get_stage()
         if not stage.GetPrimAtPath(default_prim_path):
             omni.kit.commands.execute(
-                "CreatePrim", prim_path=default_prim_path,
-                prim_type="Xform", select_new_prim=True, attributes={}
+                "CreatePrim", prim_path=default_prim_path, prim_type="Xform", select_new_prim=True, attributes={}
             )
             stage.SetDefaultPrim(stage.GetPrimAtPath(default_prim_path))
 
@@ -302,10 +315,7 @@ class ExtensionModel:
         attachment_preset = metadata.get(self._METADATA_KEY)
         if not attachment_preset or attachment_preset is None:
             # Fallback to defaults
-            attachment_preset = {
-                "WizardVehicle": vehicle_path,
-                "BasisCurve": "/World/BasisCurves/BasisCurves"
-            }
+            attachment_preset = {"WizardVehicle": vehicle_path, "BasisCurve": "/World/BasisCurves/BasisCurves"}
         return attachment_preset
 
     def get_lookahead_distance(self):
@@ -314,11 +324,7 @@ class ExtensionModel:
 
     def update_lookahead_distance(self, distance):
         """Updates the lookahead distance parameter for pure pursuit"""
-
-        clamped_distance = max(
-            self.MIN_LOOKAHEAD_distance,
-            min(self.MAX_LOOKAHEAD_distance, distance)
-        )
+        clamped_distance = max(self.MIN_LOOKAHEAD_distance, min(self.MAX_LOOKAHEAD_distance, distance))
 
         for scenario_manager in self._scenario_managers:
             scenario_manager.scenario.set_lookahead_distance(clamped_distance)

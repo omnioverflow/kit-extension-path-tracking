@@ -1,2 +1,6 @@
 isort
 pre-commit
+pylint
+black
+flake8
+flake8-pyproject

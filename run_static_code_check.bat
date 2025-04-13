@@ -1,0 +1,3 @@
+@echo off
+echo Running static code checks on all files...
+pre-commit run --all-files

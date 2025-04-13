@@ -1,0 +1,8 @@
+[MASTER]
+ignore-patterns=tools/packman/bootstrap/install_package.py,tools/scripts/link_app.py
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=import-error

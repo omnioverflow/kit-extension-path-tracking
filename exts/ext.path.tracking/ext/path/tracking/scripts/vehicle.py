@@ -1,6 +1,8 @@
 """
 Vehicle class to manipulate vehicle state and properties.
 """
+
+# pylint: disable=invalid-name
 from enum import IntEnum
 
 import numpy as np
@@ -12,23 +14,26 @@ from .utils import UpAxisHelper
 
 class Axle(IntEnum):
     """Enumeration for vehicle axles."""
-    FRONT = 0,
+
+    FRONT = (0,)
     REAR = 1
 
 
 class Wheel(IntEnum):
     """Enumeration for vehicle wheels."""
-    FRONT_LEFT = 0,
-    FRONT_RIGHT = 1,
-    REAR_LEFT = 2,
+
+    FRONT_LEFT = (0,)
+    FRONT_RIGHT = (1,)
+    REAR_LEFT = (2,)
     REAR_RIGHT = 3
 
 
-class Vehicle():
+class Vehicle:
     """
     A wrapper created to help manipulating state of a vehicle prim and its
     dynamic properties, such as acceleration, desceleration, steering etc.
     """
+
     def __init__(self, vehicle_prim, max_steer_angle_radians, rear_steering=True):
         self.up_axis_index: int = UpAxisHelper.get_up_axis_index()
         self._prim = vehicle_prim
@@ -37,14 +42,10 @@ class Vehicle():
         self._stage = omni.usd.get_context().get_stage()
         self._rear_stearing = rear_steering
         self._wheel_prims = {
-            Wheel.FRONT_LEFT:
-                self._stage.GetPrimAtPath(f"{self._path}/LeftWheel1References"),
-            Wheel.FRONT_RIGHT:
-                self._stage.GetPrimAtPath(f"{self._path}/RightWheel1References"),
-            Wheel.REAR_LEFT:
-                self._stage.GetPrimAtPath(f"{self._path}/LeftWheel2References"),
-            Wheel.REAR_RIGHT:
-                self._stage.GetPrimAtPath(f"{self._path}/RightWheel2References")
+            Wheel.FRONT_LEFT: self._stage.GetPrimAtPath(f"{self._path}/LeftWheel1References"),
+            Wheel.FRONT_RIGHT: self._stage.GetPrimAtPath(f"{self._path}/RightWheel1References"),
+            Wheel.REAR_LEFT: self._stage.GetPrimAtPath(f"{self._path}/LeftWheel2References"),
+            Wheel.REAR_RIGHT: self._stage.GetPrimAtPath(f"{self._path}/RightWheel2References"),
         }
         steering_wheels = [Wheel.FRONT_LEFT, Wheel.FRONT_RIGHT]
         non_steering_wheels = [Wheel.REAR_LEFT, Wheel.REAR_RIGHT]
@@ -125,11 +126,11 @@ class Vehicle():
         """Get the position of the rear axle."""
         return self.axle_position(Axle.REAR)
 
-    def axle_position(self, type):
-        """Get the position of the axle based on the type (front or rear)."""
+    def axle_position(self, axle_type):
+        """Get the position of the axle based on the axle_type (front or rear)."""
         cache = UsdGeom.XformCache()
         T = cache.GetLocalToWorldTransform(self._vehicle())
-        if type == Axle.FRONT:
+        if axle_type == Axle.FRONT:
             wheel_fl = self._wheel_prims[Wheel.FRONT_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_fr = self._wheel_prims[Wheel.FRONT_RIGHT].GetAttribute("xformOp:translate").Get()
             wheel_fl[self.up_axis_index] = 0.0
@@ -141,7 +142,8 @@ class Vehicle():
             wheel_fr = Gf.Vec3f(wheel_fr[0], wheel_fr[1], wheel_fr[2])
 
             return (wheel_fl + wheel_fr) / 2
-        elif type == Axle.REAR:
+
+        if axle_type == Axle.REAR:
             wheel_rl = self._wheel_prims[Wheel.REAR_LEFT].GetAttribute("xformOp:translate").Get()
             wheel_rr = self._wheel_prims[Wheel.REAR_RIGHT].GetAttribute("xformOp:translate").Get()
             wheel_rl[self.up_axis_index] = 0.0
@@ -153,12 +155,12 @@ class Vehicle():
             wheel_rr = Gf.Vec3f(wheel_rr[0], wheel_rr[1], wheel_rr[2])
 
             return (wheel_rl + wheel_rr) / 2
-        else:
-            return None
 
-    def _wheel_pos(self, type):
+        return None
+
+    def _wheel_pos(self, wheel_type):
         R = self.rotation_matrix()
-        wheel_pos = self._wheel_prims[type].GetAttribute("xformOp:translate").Get()
+        wheel_pos = self._wheel_prims[wheel_type].GetAttribute("xformOp:translate").Get()
         wheel_pos = Gf.Vec4f(wheel_pos[0], wheel_pos[1], wheel_pos[2], 1.0) * R
         return Gf.Vec3f(wheel_pos[0], wheel_pos[1], wheel_pos[2]) + self.curr_position()
 
@@ -211,10 +213,9 @@ class Vehicle():
 
     def is_close_to(self, point, lookahead_distance):
         """Check if the vehicle is close to a given point."""
-        if not point:
-            raise Exception("[Vehicle] Point is None")
+        assert point is not None, "[Vehicle] Point is None"
         curr_vehicle_pos = self.curr_position()
-        if not curr_vehicle_pos:
-            raise Exception("[Vechicle] Current position is None")
+        assert curr_vehicle_pos is not None, "[Vehicle] Current position is None"
+
         distance = np.linalg.norm(curr_vehicle_pos - point)
-        return tuple([distance, distance < lookahead_distance])
+        return distance, distance < lookahead_distance

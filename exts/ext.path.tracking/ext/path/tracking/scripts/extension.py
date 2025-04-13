@@ -1,4 +1,5 @@
 """Naive implementation of vehicle path tracking as an Omniverse extension."""
+
 # pylint: disable=import-error, invalid-name
 import asyncio
 
@@ -41,15 +42,17 @@ class PathTrackingExtension(omni.ext.IExt):
         # in recomputing changes in the vehicle planned trajectory "on the fly".
         # self._usd_listener = Tf.Notice.Register(Usd.Notice.ObjectsChanged, self._on_usd_change, None)
 
-        self._stage_event_sub = omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(
-            self._on_stage_event, name="Stage Open/Closing Listening"
+        self._stage_event_sub = (
+            omni.usd.get_context()
+            .get_stage_event_stream()
+            .create_subscription_to_pop(self._on_stage_event, name="Stage Open/Closing Listening")
         )
 
         self._model = ExtensionModel(
             ext_id,
             default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
             max_lookahed_distance=self.MAX_LOOKAHEAD,
-            min_lookahed_distance=self.MIN_LOOKAHEAD
+            min_lookahed_distance=self.MIN_LOOKAHEAD,
         )
         self._ui = ExtensionUI(self)
         self._ui.build_ui(self._model.get_lookahead_distance(), attachments=[])
@@ -73,7 +76,9 @@ class PathTrackingExtension(omni.ext.IExt):
     def _update_ui(self):
         self._ui.update_attachment_info(self._model.vehicle_to_curve_attachments.keys())
 
-    def _on_click_start_scenario(self):
+    def on_click_start_scenario(self):
+        """On click event handler for starting the scenario"""
+
         async def start_scenario(model):
             timeline = omni.timeline.get_timeline_interface()
             if timeline.is_playing():
@@ -85,7 +90,9 @@ class PathTrackingExtension(omni.ext.IExt):
 
         asyncio.ensure_future(start_scenario(self._model))
 
-    def _on_click_stop_scenario(self):
+    def on_click_stop_scenario(self):
+        """On click event handler for stopping the scenario"""
+
         async def stop_scenario():
             timeline = omni.timeline.get_timeline_interface()
             if timeline.is_playing():
@@ -95,19 +102,23 @@ class PathTrackingExtension(omni.ext.IExt):
         run_loop = asyncio.get_event_loop()
         asyncio.run_coroutine_threadsafe(stop_scenario(), loop=run_loop)
 
-    def _on_click_load_sample_vehicle(self):
+    def on_click_load_sample_vehicle(self):
+        """On click event handler for loading a sample vehicle"""
         self._model.load_sample_vehicle()
 
-    def _on_click_load_ground_plane(self):
+    def on_click_load_ground_plane(self):
+        """On click event handler for loading a ground plane"""
         self._model.load_ground_plane()
 
-    def _on_click_load_basis_curve(self):
+    def on_click_load_basis_curve(self):
+        """On click event handler for loading a basis curve"""
         self._model.load_sample_track()
 
     def _on_click_load_forklift(self):
         self._model.load_forklift_rig()
 
-    def _on_click_attach_selected(self):
+    def on_click_attach_selected(self):
+        """On click event handler for attaching selected prims to the vehicle"""
         selected_prim_paths = omni.usd.get_context().get_selection().get_selected_prim_paths()
         self._model.attach_selected_prims(selected_prim_paths)
         self._update_ui()
@@ -125,10 +136,12 @@ class PathTrackingExtension(omni.ext.IExt):
         self._model.clear_attachments()
         self._update_ui()
 
-    def _on_click_clear_attachments(self):
+    def on_click_clear_attachments(self):
+        """On click event handler for clearing all attachments"""
         self._clear_attachments()
 
-    def _on_click_load_preset_scene(self):
+    def on_click_load_preset_scene(self):
+        """On click event handler for loading a preset scene"""
         self._model.load_preset_scene()
         self._update_ui()
 
@@ -143,18 +156,19 @@ class PathTrackingExtension(omni.ext.IExt):
         for resync_path in objects_changed.GetResyncedPaths():
             carb.log_info(resync_path)
 
-    def _changed_enable_debug(self, model):
+    def on_changed_enabled_debug(self, model):
+        """On change event handler for enabling/disabling debug mode"""
         self._model.set_enable_debug(model.as_bool)
 
-    def _on_lookahead_distance_changed(self, distance):
-        # self._clear_attachments()
+    def on_lookahead_distance_changed(self, distance):
+        """Called when the lookahead distance is changed"""
         clamped_lookahead_distance = self._model.update_lookahead_distance(distance)
         self._ui.set_lookahead_distance(clamped_lookahead_distance)
 
-    def _on_trajectory_loop_value_changed(self, widget_model):
+    def on_trajectory_loop_value_changed(self, widget_model):
+        """Called when the trajectory loop value is changed"""
         self._model.set_close_trajectory_loop(widget_model.as_bool)
 
     def _on_steering_changed(self, model):
-        # First we have to stop current simulation.
-        self._on_click_stop_scenario()
+        self.on_click_stop_scenario()
         self._model.set_enable_rear_steering(model.as_bool)

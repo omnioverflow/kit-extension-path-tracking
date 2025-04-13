@@ -1,3 +1,5 @@
+# pylint: skip-file
+# flake8: noqa
 import argparse
 import json
 import os

@@ -1,4 +1,5 @@
 """Path tracking implementation for vehicle simulation."""
+
 import math
 from typing import Optional
 
@@ -16,9 +17,17 @@ class PurePursuitScenario(Scenario):
     """
     Implements a path tracking scenario for vehicle simulation in Omniverse.
     """
-    def __init__(self, lookahead_distance, vehicle_path, trajectory_prim_path, meters_per_unit,
-                 close_loop_flag, enable_rear_steering):
-        super().__init__(secondsToRun=10000.0, timeStep=1.0/25.0)
+
+    def __init__(
+        self,
+        lookahead_distance,
+        vehicle_path,
+        trajectory_prim_path,
+        meters_per_unit,
+        close_loop_flag,
+        enable_rear_steering,
+    ):
+        super().__init__(seconds_to_run=10000.0, time_step=1.0 / 25.0)
 
         self._MAX_STEER_ANGLE_RADIANS = math.pi / 3
 
@@ -28,12 +37,10 @@ class PurePursuitScenario(Scenario):
 
         self._stage = omni.usd.get_context().get_stage()
         self._vehicle = Vehicle(
-            self._stage.GetPrimAtPath(vehicle_path),
-            self._MAX_STEER_ANGLE_RADIANS,
-            enable_rear_steering
+            self._stage.GetPrimAtPath(vehicle_path), self._MAX_STEER_ANGLE_RADIANS, enable_rear_steering
         )
         self._debug_render = DebugRenderer(self._vehicle.get_bbox_size())
-        self._path_tracker = PurePursuitPathTracker(math.pi/4)
+        self._path_tracker = PurePursuitPathTracker(math.pi / 4)
 
         self._dest = None
         self._trajectory_prim_path = trajectory_prim_path
@@ -54,12 +61,12 @@ class PurePursuitScenario(Scenario):
     def on_end(self):
         self._trajectory.reset()
 
-    def _process(self, forward, up, dest_position, distance=None, is_close_to_dest=False):
+    def _process(self, forward, up, dest_position, distance=None):
         """
         Steering/acceleration vehicle control heuristic, generalized for any stage up-axis.
         """
         if distance is None:
-            distance, is_close_to_dest = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
+            distance, _ = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
 
         curr_vehicle_pos = self._vehicle.curr_position()
 
@@ -70,13 +77,7 @@ class PurePursuitScenario(Scenario):
         self._debug_render.draw_vehicle_debug(self._vehicle, self._trajectory, axle_front, axle_rear, forward, up)
         self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
 
-        steer_angle = self._path_tracker.on_step(
-            axle_front,
-            axle_rear,
-            forward,
-            dest_position,
-            curr_vehicle_pos
-        )
+        steer_angle = self._path_tracker.on_step(axle_front, axle_rear, dest_position)
 
         asjusted_steer_angle = steer_angle * self._steer_sign
         if asjusted_steer_angle < 0:
@@ -117,7 +118,7 @@ class PurePursuitScenario(Scenario):
         """Enables/disables debug rendering."""
         self._debug_render.enable = flag
 
-    def on_step(self, deltaTime, totalTime):
+    def on_step(self, _delta_time, _total_time):
         """
         Updates vehicle control on sim update callback in order to stay on tracked path.
         """
@@ -128,15 +129,13 @@ class PurePursuitScenario(Scenario):
             self._trajectory.draw()
 
         dest_position = self._trajectory.point()
-        is_end_point = self._trajectory.is_at_end_point()
         # Run vehicle control unless reached the destination
         if dest_position:
             distance, is_close_to_dest = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
-            if (is_close_to_dest):
+            if is_close_to_dest:
                 dest_position = self._trajectory.next_point()
             else:
-                # Compute vehicle steering and acceleration
-                self._process(forward, up, dest_position, distance, is_close_to_dest)
+                self._process(forward, up, dest_position, distance)
         else:
             self._stopped = True
             self._full_stop()
@@ -152,16 +151,10 @@ class PurePursuitScenario(Scenario):
     def set_close_trajectory_loop(self, flag):
         """Sets trajectory loop flag."""
         self._close_loop = flag
-        self._trajectory.set_close_loop(flag)
-
-# ======================================================================================================================
-#
-# PurePursuitPathTracker
-#
-# ======================================================================================================================
+        self._trajectory.close_loop = flag
 
 
-class PurePursuitPathTracker():
+class PurePursuitPathTracker:
     """
     Implements path tracking in spirit of Pure Pursuit algorithm.
     References
@@ -180,11 +173,10 @@ class PurePursuitPathTracker():
         """
         return np.clip(angle / self._max_steer_angle_radians, -1.0, 1.0)
 
-    def on_step(self, front_axle_pos, rear_axle_pos, forward_vec, dest_vec, curr_pos):
-        # Flatten inputs
+    def on_step(self, front_axle_pos, rear_axle_pos, dest_vec):
+        """Recomputes vehicle's steering angle on a simulation step."""
         front_axle_flat = UpAxisHelper.flatten(front_axle_pos)
         rear_axle_flat = UpAxisHelper.flatten(rear_axle_pos)
-        forward_flat = UpAxisHelper.flatten(forward_vec)
         dest_flat = UpAxisHelper.flatten(dest_vec)
 
         lookahead = dest_flat - rear_axle_flat
@@ -193,61 +185,31 @@ class PurePursuitPathTracker():
         lookahead_dist = np.linalg.norm(lookahead)
         forward_dist = np.linalg.norm(forward)
 
-        if self._debug_enabled and (lookahead_dist == 0.0 or forward_dist == 0.0):
-            raise Exception("Pure pursuit: zero length vectors")
+        assert lookahead_dist > 0.0 and forward_dist > 0.0
 
         lookahead /= lookahead_dist
         forward /= forward_dist
 
         dot = np.dot(lookahead, forward)
-        cross = lookahead[0] * forward[1] - lookahead[1] * forward[0]  # 2D cross product (Z-component)
+        cross = lookahead[0] * forward[1] - lookahead[1] * forward[0]
         alpha = math.atan2(cross, dot)
 
         theta = math.atan(2.0 * forward_dist * math.sin(alpha) / lookahead_dist)
         return self._steer_value_from_angle(theta)
 
-    def on_step_v0(self, front_axle_pos, rear_axle_pos, forward, dest_pos, curr_pos):
-        """
-        Recomputes vehicle's steering angle on a simulation step.
-        """
-        front_axle_pos, rear_axle_pos = rear_axle_pos, front_axle_pos
-        # Lookahead points to the next destination point
-        lookahead = dest_pos - rear_axle_pos
-        # Forward vector corrsponds to an axis segment front-to-rear
-        forward = front_axle_pos - rear_axle_pos
 
-        lookahead_dist = np.linalg.norm(lookahead)
-        forward_dist = np.linalg.norm(forward)
-        if self._debug_enabled:
-            if lookahead_dist == 0.0 or forward_dist == 0.0:
-                raise Exception("Pure pursuit aglorithm: invalid state")
-
-        lookahead.Normalize()
-        forward.Normalize()
-
-        # Compute a signed angle alpha between lookahead and forward vectors,
-        # /!\ left-handed rotation assumed.
-        dot = lookahead[0] * forward[0] + lookahead[2] * forward[2]
-        cross = lookahead[0] * forward[2] - lookahead[2] * forward[0]
-        alpha = math.atan2(cross, dot)
-
-        theta = math.atan(2.0 * forward_dist * math.sin(alpha) / lookahead_dist)
-        steer_angle = self._steer_value_from_angle(theta)
-
-        return steer_angle
-
-
-class Trajectory():
+class Trajectory:
     """
     A helper class to access coordinates of points that form a BasisCurve prim.
     """
+
     def __init__(self, prim_path, close_loop=True):
         self._points: list[Gf.Vec3f] = []
         self._points_cache: Optional[list[Gf.Vec3f]] = None
 
         stage = omni.usd.get_context().get_stage()
         basis_curves = UsdGeom.BasisCurves.Get(stage, prim_path)
-        if (basis_curves and basis_curves is not None):
+        if basis_curves and basis_curves is not None:
             curve_prim = stage.GetPrimAtPath(prim_path)
             self._points = basis_curves.GetPointsAttr().Get()
             self._num_points = len(self._points)
@@ -263,6 +225,15 @@ class Trajectory():
             self._num_points = 0
         self._pointer = 0
         self._close_loop = close_loop
+
+    @property
+    def close_loop(self) -> bool:
+        """Whether the trajectory is closed (i.e., loops back to the start)."""
+        return self._close_loop
+
+    @close_loop.setter
+    def close_loop(self, value: bool) -> None:
+        self._close_loop = value
 
     def get_all_points(self) -> list:
         """
@@ -283,7 +254,7 @@ class Trajectory():
         """
         Next point on the curve.
         """
-        if (self._pointer < self._num_points):
+        if self._pointer < self._num_points:
             self._pointer = self._pointer + 1
             if self._pointer >= self._num_points and self._close_loop:
                 self._pointer = 0
@@ -301,6 +272,3 @@ class Trajectory():
         Resets current point to the first one.
         """
         self._pointer = 0
-
-    def set_close_loop(self, flag):
-        self._close_loop = flag

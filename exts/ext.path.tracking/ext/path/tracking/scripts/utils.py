@@ -1,9 +1,10 @@
+"""Utility functions."""
+
+from typing import Iterable, Optional
+
 import numpy as np
 import omni.usd
 from pxr import Gf, PhysxSchema, Sdf, UsdGeom, UsdPhysics
-
-# utils/up_axis.py
-
 
 
 class UpAxisHelper:
@@ -15,7 +16,7 @@ class UpAxisHelper:
     _initialized = False
     _up_axis_token = None
     _up_axis_index: int = -1
-    _flat_indices = None
+    _flat_indices: Optional[Iterable[int]] = []
 
     @staticmethod
     def _initialize():
@@ -70,47 +71,48 @@ class UpAxisHelper:
 
 
 class Utils:
+    """Utility functions for creating meshes and handling USD stage operations."""
+
     @staticmethod
-    def create_mesh_square_axis(stage, path, axis, halfSize):
+    def create_mesh_square_axis(stage, path, axis, half_size):
+        """Create a square mesh aligned with the specified axis."""
         if axis == "X":
             points = [
-                Gf.Vec3f(0.0, -halfSize, -halfSize),
-                Gf.Vec3f(0.0, halfSize, -halfSize),
-                Gf.Vec3f(0.0, halfSize, halfSize),
-                Gf.Vec3f(0.0, -halfSize, halfSize),
+                Gf.Vec3f(0.0, -half_size, -half_size),
+                Gf.Vec3f(0.0, half_size, -half_size),
+                Gf.Vec3f(0.0, half_size, half_size),
+                Gf.Vec3f(0.0, -half_size, half_size),
             ]
             normals = [Gf.Vec3f(1, 0, 0), Gf.Vec3f(1, 0, 0), Gf.Vec3f(1, 0, 0), Gf.Vec3f(1, 0, 0)]
             indices = [0, 1, 2, 3]
-            vertexCounts = [4]
+            vertex_counts = [4]
 
-            # Create the mesh
-            return Utils.create_mesh(stage, path, points, normals, indices, vertexCounts)
-        elif axis == "Y":
+            return Utils.create_mesh(stage, path, points, normals, indices, vertex_counts)
+
+        if axis == "Y":
             points = [
-                Gf.Vec3f(-halfSize, 0.0, -halfSize),
-                Gf.Vec3f(halfSize, 0.0, -halfSize),
-                Gf.Vec3f(halfSize, 0.0, halfSize),
-                Gf.Vec3f(-halfSize, 0.0, halfSize),
+                Gf.Vec3f(-half_size, 0.0, -half_size),
+                Gf.Vec3f(half_size, 0.0, -half_size),
+                Gf.Vec3f(half_size, 0.0, half_size),
+                Gf.Vec3f(-half_size, 0.0, half_size),
             ]
             normals = [Gf.Vec3f(0, 1, 0), Gf.Vec3f(0, 1, 0), Gf.Vec3f(0, 1, 0), Gf.Vec3f(0, 1, 0)]
             indices = [0, 1, 2, 3]
-            vertexCounts = [4]
+            vertex_counts = [4]
 
-            # Create the mesh
-            return Utils.create_mesh(stage, path, points, normals, indices, vertexCounts)
+            return Utils.create_mesh(stage, path, points, normals, indices, vertex_counts)
 
         points = [
-            Gf.Vec3f(-halfSize, -halfSize, 0.0),
-            Gf.Vec3f(halfSize, -halfSize, 0.0),
-            Gf.Vec3f(halfSize, halfSize, 0.0),
-            Gf.Vec3f(-halfSize, halfSize, 0.0),
+            Gf.Vec3f(-half_size, -half_size, 0.0),
+            Gf.Vec3f(half_size, -half_size, 0.0),
+            Gf.Vec3f(half_size, half_size, 0.0),
+            Gf.Vec3f(-half_size, half_size, 0.0),
         ]
         normals = [Gf.Vec3f(0, 0, 1), Gf.Vec3f(0, 0, 1), Gf.Vec3f(0, 0, 1), Gf.Vec3f(0, 0, 1)]
         indices = [0, 1, 2, 3]
-        vertexCounts = [4]
+        vertex_counts = [4]
 
-        # Create the mesh
-        mesh = Utils.create_mesh(stage, path, points, normals, indices, vertexCounts)
+        mesh = Utils.create_mesh(stage, path, points, normals, indices, vertex_counts)
 
         # text coord
         texCoords = mesh.CreatePrimvar("st", Sdf.ValueTypeNames.TexCoord2fArray, UsdGeom.Tokens.varying)
@@ -119,10 +121,11 @@ class Utils:
         return mesh
 
     @staticmethod
-    def create_mesh(stage, path, points, normals, indices, vertexCounts):
+    def create_mesh(stage, path, points, normals, indices, vertex_counts):
+        """Create a mesh with the given points, normals, indices, and vertex counts."""
         mesh = UsdGeom.Mesh.Define(stage, path)
         # Fill in VtArrays
-        mesh.CreateFaceVertexCountsAttr().Set(vertexCounts)
+        mesh.CreateFaceVertexCountsAttr().Set(vertex_counts)
         mesh.CreateFaceVertexIndicesAttr().Set(indices)
         mesh.CreatePointsAttr().Set(points)
         mesh.CreateDoubleSidedAttr().Set(False)
@@ -130,27 +133,27 @@ class Utils:
         return mesh
 
     @staticmethod
-    def add_ground_plane(stage, planePath, axis,
-                         size=3000.0, position=Gf.Vec3f(0.0), color=Gf.Vec3f(0.2, 0.25, 0.25)):
+    def add_ground_plane(stage, plane_path, axis, size=3000.0, position=Gf.Vec3f(0.0), color=Gf.Vec3f(0.2, 0.25, 0.25)):
+        """Create a ground plane in the USD stage."""
         # plane xform, so that we dont nest geom prims
-        planePath = omni.usd.get_stage_next_free_path(stage, planePath, True)
-        planeXform = UsdGeom.Xform.Define(stage, planePath)
-        planeXform.AddTranslateOp().Set(position)
-        planeXform.AddOrientOp().Set(Gf.Quatf(1.0))
-        planeXform.AddScaleOp().Set(Gf.Vec3f(1.0))
+        plane_path = omni.usd.get_stage_next_free_path(stage, plane_path, True)
+        plane_xform = UsdGeom.Xform.Define(stage, plane_path)
+        plane_xform.AddTranslateOp().Set(position)
+        plane_xform.AddOrientOp().Set(Gf.Quatf(1.0))
+        plane_xform.AddScaleOp().Set(Gf.Vec3f(1.0))
 
         # (Graphics) Plane mesh
-        geomPlanePath = planePath + "/CollisionMesh"
-        entityPlane = Utils.create_mesh_square_axis(stage, geomPlanePath, axis, size)
-        entityPlane.CreateDisplayColorAttr().Set([color])
+        geom_plane_path = plane_path + "/CollisionMesh"
+        entity_plane = Utils.create_mesh_square_axis(stage, geom_plane_path, axis, size)
+        entity_plane.CreateDisplayColorAttr().Set([color])
 
         # (Collision) Plane
-        colPlanePath = planePath + "/CollisionPlane"
-        planeGeom = PhysxSchema.Plane.Define(stage, colPlanePath)
-        planeGeom.CreatePurposeAttr().Set("guide")
-        planeGeom.CreateAxisAttr().Set(axis)
+        col_plane_path = plane_path + "/CollisionPlane"
+        plane_geom = PhysxSchema.Plane.Define(stage, col_plane_path)
+        plane_geom.CreatePurposeAttr().Set("guide")
+        plane_geom.CreateAxisAttr().Set(axis)
 
-        prim = stage.GetPrimAtPath(colPlanePath)
+        prim = stage.GetPrimAtPath(col_plane_path)
         UsdPhysics.CollisionAPI.Apply(prim)
 
-        return planePath
+        return plane_path

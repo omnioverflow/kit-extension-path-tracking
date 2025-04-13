@@ -1,4 +1,4 @@
-from email.policy import default
+"""Test the ExtensionModel class."""
 
 import omni.kit.app
 import omni.kit.commands
@@ -7,11 +7,12 @@ from omni.kit.test import AsyncTestCaseFailOnLogError
 
 from ..scripts.model import ExtensionModel
 
-# ======================================================================================================================
-
 
 class TestExtensionModel(AsyncTestCaseFailOnLogError):
+    """Test class for the ExtensionModel."""
+
     async def setUp(self):
+        """Set up the test environment."""
         usd_context = omni.usd.get_context()
         await usd_context.new_stage_async()
 
@@ -23,14 +24,17 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         self.MIN_LOOKAHEAD = 300.0
 
     async def tearDown(self):
+        """Tear down the test environment."""
         self._ext_id = None
 
     async def test_load_preset(self):
-        ext_model = ExtensionModel(self._ext_id,
-                                   default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
-                                   max_lookahed_distance=self.MAX_LOOKAHEAD,
-                                   min_lookahed_distance=self.MIN_LOOKAHEAD
-                                   )
+        """Test loading the preset scene."""
+        ext_model = ExtensionModel(
+            self._ext_id,
+            default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
+            max_lookahed_distance=self.MAX_LOOKAHEAD,
+            min_lookahed_distance=self.MIN_LOOKAHEAD,
+        )
         ext_model.load_preset_scene()
 
         stage = omni.usd.get_context().get_stage()
@@ -42,13 +46,16 @@ class TestExtensionModel(AsyncTestCaseFailOnLogError):
         self.assertTrue(vehicle_template is not None)
         self.assertTrue(curve is not None)
 
-    async def test_hello(self):
-        ext_model = ExtensionModel(self._ext_id,
-                                   default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
-                                   max_lookahed_distance=self.MAX_LOOKAHEAD,
-                                   min_lookahed_distance=self.MIN_LOOKAHEAD
-                                   )
+    async def test_extension_model(self):
+        """Test the hello function."""
+        ext_model = ExtensionModel(
+            self._ext_id,
+            default_lookahead_distance=self.DEFAULT_LOOKAHEAD,
+            max_lookahed_distance=self.MAX_LOOKAHEAD,
+            min_lookahed_distance=self.MIN_LOOKAHEAD,
+        )
+        assert ext_model is not None
 
-    async def test_attachments_preset(self):
-        # TODO: provide impl
-        self.assertTrue(True)
+    # async def test_attachments_preset(self):
+    #     """Test loading the attachments preset."""
+    #     self.assertTrue(True)
