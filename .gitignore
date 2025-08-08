@@ -1,140 +1,46 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
+﻿# All folders starting with _ are local.
+_*/
+
+# Compiled python files.
 *.py[cod]
-*$py.class
 
-# vscode
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+# Visual Studio files.
+/.vs
+**/.vscode/ipch
 
-# Omniverse App Symlink
-app
+# macOS files.
+.DS_Store
 
-# C extensions
-*.so
+# Generated license file.
+PACKAGE-DEPS.yaml
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# packman .user config
+*.packman.xml.user
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# kit user config
+deps/**/user.toml
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# vscode settings are copied and filled in from 'settings.json.template'
+.vscode/settings.json
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
+# PyCharm files.
+/.idea/
 
-# Translations
-*.mo
-*.pot
+# Linux in docker build $HOME dirs
+/.nvidia-omniverse
+/.local
+/.cache
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# Omniverse EULA breadcrumb
+/.omniverse_eula_accepted.txt
 
-# Flask stuff:
-instance/
-.webassets-cache
+# Streaming EventTrace
+*.etli
 
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
+# Python virtual environments
+.venv/
 venv/
+env/
 ENV/
-env.bak/
-venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# Omniverse thumbnails
-.thumbs/
+/TEMP/
