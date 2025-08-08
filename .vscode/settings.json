@@ -122,6 +122,7 @@
     "python.analysis.extraPaths": [
         "_build/pip-packages",
         "_build/windows-x86_64/debug/kit/kernel/py",
+        "_build/windows-x86_64/release/exts/o2.vehicle.path_tracking",
         "_build/windows-x86_64/release/exts/o2.vehicle_composer_setup_extension",
         "_build/windows-x86_64/release/extscache/carb.audio-0.1.0+b0a86421.wx64.r.cp311",
         "_build/windows-x86_64/release/extscache/carb.audio-0.1.0+b0a86421.wx64.r.cp311/pip_prebundle",
@@ -795,6 +796,7 @@
         "_repo/deps/repo_man_deps",
         "_repo/deps/repo_package",
         "_repo/deps/repo_test",
+        "_repo/deps/repo_test_deps",
         "_repo/deps/repo_usd",
         "tools/repoman",
 ],
