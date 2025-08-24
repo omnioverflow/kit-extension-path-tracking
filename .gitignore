@@ -45,4 +45,7 @@ ENV/
 
 /TEMP/
 
+/templates
+/tools
+.vscode/
 .jupyter/
