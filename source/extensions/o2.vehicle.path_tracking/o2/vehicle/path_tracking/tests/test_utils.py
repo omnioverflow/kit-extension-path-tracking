@@ -1,7 +1,7 @@
 """Tests for utils.py."""
 
-import omni.usd
 import omni.kit.app
+import omni.usd
 from omni.kit.test import AsyncTestCase
 from pxr import UsdGeom
 

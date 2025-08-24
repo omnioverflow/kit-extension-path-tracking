@@ -9,9 +9,9 @@ from pxr import Gf, UsdGeom
 
 from .debug_draw import DebugRenderer
 from .stepper import Scenario
+from .trajectory import Trajectory
 from .utils import UpAxisHelper
 from .vehicle import Axle, Vehicle
-from .trajectory import Trajectory
 
 
 class PurePursuitScenario(Scenario):

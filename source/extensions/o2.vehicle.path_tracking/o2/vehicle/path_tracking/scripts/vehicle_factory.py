@@ -1,13 +1,11 @@
 """VehicleFactory: Static factory for creating PhysX vehicles in Omniverse."""
-import omni
-import omni.usd
-import omni.timeline
-
-from pxr import Usd, UsdGeom, UsdPhysics
 from typing import Callable, Optional, Tuple
 
-
+import omni
+import omni.timeline
+import omni.usd
 from omni.physxvehicle.scripts.wizards import physxVehicleWizard as physxVehicleWizard
+from pxr import Usd, UsdGeom, UsdPhysics
 
 
 class VehicleFactory:

@@ -2,6 +2,7 @@
 
 import carb
 
+
 def redirect_carb_logs_to_stdout():
     """Redirect Carb logs to standard output."""
     carb_settings = carb.settings.get_settings()

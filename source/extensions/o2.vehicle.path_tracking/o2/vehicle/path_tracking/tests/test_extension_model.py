@@ -1,14 +1,15 @@
 """Test the ExtensionModel class."""
 
-import carb
 import gc
+
+import carb
 import omni.kit.app
 import omni.kit.commands
 import omni.usd
 from omni.kit.test import AsyncTestCase
 
-from ..scripts.model import ExtensionModel
 from ..scripts.logging import redirect_carb_logs_to_stdout
+from ..scripts.model import ExtensionModel
 
 
 async def cleanup_stage(stage):

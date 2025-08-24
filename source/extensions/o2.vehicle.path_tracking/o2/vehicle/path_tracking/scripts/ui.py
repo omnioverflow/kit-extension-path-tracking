@@ -268,8 +268,7 @@ class ExtensionUI:
             axis=UsdGeom.Tokens.y,  # Circle in XZ plane (Y-up)
             periodic=True,
             width=10.0,
-            cmap="plasma",
-            reverse_cmap=True,
+            reverse_cmap=False,
         )
 
     def teardown(self):

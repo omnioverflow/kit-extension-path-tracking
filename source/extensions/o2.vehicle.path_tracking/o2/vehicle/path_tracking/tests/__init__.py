@@ -9,5 +9,5 @@
 # its affiliates is strictly prohibited.
 
 from .test_benchmarks import *
-from .test_hello import *
 from .test_extension_model import *
+from .test_utils import *

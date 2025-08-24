@@ -19,6 +19,7 @@ keywords = ["kit", "omni.physxvehicle", "animation", "path", "tracking", "vehicl
 "omni.physx.commands"  = {}
 "omni.curve.creator" = {}
 "omni.curve.manipulator" = {}
+"o2.vehicle.pip_prebundle_extension" = {}
 
 [[python.module]]
 name = "o2.vehicle.path_tracking"

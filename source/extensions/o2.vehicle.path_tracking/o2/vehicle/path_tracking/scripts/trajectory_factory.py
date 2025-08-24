@@ -1,14 +1,47 @@
-from __future__ import annotations
+"""TrajectoryFactory for creating and authoring trajectory curves in USD."""
+
 import math
-from typing import Iterable, List, Tuple, Optional
+from typing import Iterable, List, Optional, Tuple
+
+import numpy as np
+
+# Optional dependency: 'cmap' is available in the Kit app runtime, but may be missing in bare test envs
+try:
+    from cmap import Colormap  # type: ignore
+except Exception:  # pragma: no cover - fallback for test environments without cmap
+    Colormap = None  # type: ignore
 
 import omni.usd
-from pxr import Gf, Sdf, Usd, UsdGeom, Tf
+from pxr import Gf, Sdf, Tf, Usd, UsdGeom, Vt
+
+
+DEFAULT_CMAP_NAME = "RdYlGn_r"
 
 
 def _to_gf_vec3f(v: Iterable[float]) -> Gf.Vec3f:
     x, y, z = list(v)[:3]
     return Gf.Vec3f(float(x), float(y), float(z))
+
+
+def _apply_colormap_to_curve(
+    curve: UsdGeom.BasisCurves,
+    num_points: int,
+    cmap_name: str,
+    reverse: bool = False,
+) -> None:
+    """Apply per-vertex color gradient using cmap.Colormap if available."""
+    if Colormap is None:
+        # Silently skip coloring if the optional dependency isn't present (e.g., unit tests)
+        return
+    cm = Colormap(cmap_name)
+    t = np.linspace(0.0, 1.0, num_points)
+    if reverse:
+        t = t[::-1]
+    rgba = cm(t)  # shape (num_points, 4): RGBA float in [0,1]
+    # convert to Gf.Vec3f, ignoring alpha
+    colors = [Gf.Vec3f(*tuple(rgb[:3])) for rgb in rgba]
+    pv = UsdGeom.Gprim(curve.GetPrim()).CreateDisplayColorPrimvar(UsdGeom.Tokens.vertex)
+    pv.Set(Vt.Vec3fArray(colors))
 
 
 class TrajectoryFactory:
@@ -20,7 +53,7 @@ class TrajectoryFactory:
         center: Tuple[float, float, float],
         radius: float,
         num_points: int,
-        axis: Tf.Token = UsdGeom.Tokens.z,
+        axis: UsdGeom.Tokens = UsdGeom.Tokens.z,
     ) -> List[Gf.Vec3f]:
         """
         Sample points on a circle in the plane perpendicular to the given axis (UsdGeom.Tokens.x/y/z).
@@ -60,7 +93,7 @@ class TrajectoryFactory:
         radius: float,
         num_points: int,
         *,
-        axis: Tf.Token = UsdGeom.Tokens.z,
+        axis: UsdGeom.Tokens = UsdGeom.Tokens.z,
         periodic: bool = True,
         width: float = 0.05,
     ) -> UsdGeom.BasisCurves:
@@ -84,16 +117,16 @@ class TrajectoryFactory:
         radius: float,
         num_points: int,
         *,
-        axis: Tf.Token = UsdGeom.Tokens.z,
+        axis: UsdGeom.Tokens = UsdGeom.Tokens.z,
         periodic: bool = True,
-        width: float = 0.05,
+        width: float = 0.05,        # e.g., "viridis", "inferno"
+        reverse_cmap: bool = False,
+        cmap: Optional[str] = DEFAULT_CMAP_NAME,
     ) -> UsdGeom.BasisCurves:
-        """Create a linear BasisCurves circle at prim_path using sampled points."""
         if isinstance(prim_path, str):
             prim_path = Sdf.Path(prim_path)
 
         points = TrajectoryFactory.circle_points(center, radius, num_points, axis=axis)
-
         prim_path = omni.usd.get_stage_next_free_path(stage, prim_path, True)
 
         curve = UsdGeom.BasisCurves.Define(stage, prim_path)
@@ -103,9 +136,13 @@ class TrajectoryFactory:
         curve.CreateCurveVertexCountsAttr([len(points)])
         curve.CreateWidthsAttr([width] * len(points))
 
-        # Ensure /World is default prim if we author under it
+        if cmap:
+            _apply_colormap_to_curve(curve, num_points, cmap, reverse_cmap)
+
+        # Ensure /World remains default prim
         try:
-            if prim_path.GetPrefixes() and prim_path.GetPrefixes()[0] == Sdf.Path("/World"):
+            prefixes = prim_path.GetPrefixes()
+            if prefixes and prefixes[0] == Sdf.Path("/World"):
                 world = stage.GetPrimAtPath("/World")
                 if world and not stage.GetDefaultPrim():
                     stage.SetDefaultPrim(world)
@@ -139,15 +176,18 @@ class TrajectoryFactory:
 
 
 if __name__ == "__main__":
-    # Example usage
     stage = omni.usd.get_context().get_stage()
+    radius = 1000.0
+    center = (-radius, 0, 0)
     TrajectoryFactory.create_linear_circle(
         stage=stage,
-        prim_path="/World/Circle",
-        center=(0.0, 0.0, 0.0),
-        radius=100.0,
-        num_points=32,
-        axis=UsdGeom.Tokens.z,
+        prim_path="/World/ColoredCircle",
+        center=center,
+        radius=radius,
+        num_points=128,
+        axis=UsdGeom.Tokens.y,
         periodic=True,
-        width=0.5
+        width=10.0,
+        reverse_cmap=True,
+        cmap=DEFAULT_CMAP_NAME,
     )

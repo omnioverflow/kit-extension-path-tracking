@@ -4,15 +4,15 @@
 import asyncio
 
 import carb
+import carb.settings
 import omni.ext
 import omni.kit
 import omni.usd
 from pxr import UsdGeom
-import carb.settings
 
+from .logging import redirect_carb_logs_to_stdout
 from .model import ExtensionModel
 from .ui import ExtensionUI
-from .logging import redirect_carb_logs_to_stdout
 
 
 class PathTrackingExtension(omni.ext.IExt):

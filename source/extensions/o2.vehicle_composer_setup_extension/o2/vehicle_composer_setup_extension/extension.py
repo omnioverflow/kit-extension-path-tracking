@@ -17,7 +17,6 @@ import sys
 import webbrowser
 from pathlib import Path
 
-
 import carb
 import omni.ext
 import omni.kit.app
@@ -28,7 +27,7 @@ import omni.kit.ui
 import omni.kit.window.property as property_window_ext
 import omni.ui as ui
 import omni.usd
-from omni.kit.menu.utils import MenuLayout, MenuItemDescription
+from omni.kit.menu.utils import MenuItemDescription, MenuLayout
 from omni.kit.property.usd import PrimPathWidget
 from omni.kit.quicklayout import QuickLayout
 from omni.kit.window.title import get_main_window_title

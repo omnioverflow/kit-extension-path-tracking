@@ -8,6 +8,6 @@
 # without an express license agreement from NVIDIA CORPORATION or
 # its affiliates is strictly prohibited.
 
+from .test_app_extensions import *
 # run startup tests first
 from .test_app_startup import *
-from .test_app_extensions import *
