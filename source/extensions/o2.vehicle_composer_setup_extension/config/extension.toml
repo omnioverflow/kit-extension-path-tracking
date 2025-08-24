@@ -32,7 +32,7 @@ repository = "https://github.com/NVIDIA-Omniverse/kit-app-template"  # URL of th
 "omni.kit.window.title" = {}
 "omni.ui" = {}
 "omni.usd" = {}
-
+"o2.vehicle.path_tracking" = {}
 
 [settings.app.menu]
 legacy_mode = false

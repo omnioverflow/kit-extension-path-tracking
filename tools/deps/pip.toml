@@ -25,3 +25,17 @@
 # subprocess_path = ["${root}/_build/host-deps/msvc/MSBuild/Current/Bin", "${root}/_build/host-deps/msvc/VC/Tools/MSVC/14.29.30133/bin/HostX64/x64", "${root}/_build/host-deps/msvc/VC/Auxiliary/Build", "${root}/_build/host-deps/winsdk/bin/x64"]
 # msvc_path = "${root}/_build/host-deps/msvc/VC/Tools/MSVC/14.29.30133"
 # win_sdk_path = "${root}/_build/host-deps/winsdk"
+
+
+# ------- Prebundle required Python packages for the app -------
+[[dependency]]
+python = "../../_build/target-deps/python"
+packages = [
+    "numpy>=1.26,<3",
+    "cmap>=0.6.2",
+]
+target = "../../_build/target-deps/pip_prebundle"
+platforms = ["*"]
+download_only = false
+append_to_install_folder = true
+python_include_dir = true

@@ -1,16 +1,17 @@
 """Utility functions."""
 
+from pathlib import PurePath
 from typing import Iterable, Optional
 
 import numpy as np
 import omni.usd
-from pxr import Gf, PhysxSchema, Sdf, UsdGeom, UsdPhysics
+from pxr import Gf, PhysxSchema, Sdf, Usd, UsdGeom, UsdPhysics
 
 
 class UpAxisHelper:
     """
     Static utility class for accessing up-axis metadata from the USD stage
-    and performing up-axis–aware vector operations.
+    and performing up-axis-aware vector operations.
     """
 
     _initialized = False
@@ -177,3 +178,64 @@ class Utils:
                 attr.Set(axis_upper)
 
         return plane_path
+
+    @staticmethod
+    def get_stage_next_free_path(stage: Usd.Stage, path: str) -> str:
+        """Get the next free path in the stage by appending a numeric suffix if needed."""
+        # Mirror omni.usd.get_stage_next_free_path behavior with prepend_default_prim=False
+        return omni.usd.get_stage_next_free_path(stage, path, False)
+
+    @staticmethod
+    def split_path_to_list(path: str) -> tuple[str, ...]:
+        """Split a USD path into its component parts."""
+        return PurePath(path).parts[1:]
+
+    @staticmethod
+    def ensure_xform_hierarchy_from_prim_path(stage: Usd.Stage, prim_path: str | Sdf.Path) -> UsdGeom.Xform:
+        """
+        Ensures that the parent path of the given prim_path exists in the stage.
+        Expects Xform-only; raises ValueError if any prim exists at the path that is not an Xform.
+        Returns the parent xform prim (as UsdGeom.Xform).
+        """
+        if isinstance(prim_path, Sdf.Path):
+            prim_path = str(prim_path)
+
+        ordered_prim_names = Utils.split_path_to_list(prim_path)
+        if not ordered_prim_names:
+            raise ValueError(f"Prim path '{prim_path}' has no parent path.")
+
+        return Utils.ensure_xform_hierarchy(stage, ordered_prim_names)
+
+    @staticmethod
+    def ensure_xform_hierarchy(stage: Usd.Stage, ordered_prim_names: tuple[str, ...]) -> UsdGeom.Xform:
+        """
+        Ensures that the full xform hierarchy /a/b/.../{last} exists in the stage.
+        Expects Xform-only; raises ValueError if any prim exists at the path that is not an Xform.
+        Returns the final xform prim (as UsdGeom.Xform).
+        """
+        # perform sanity checks for the input, that ordered_prim_names is a tuple
+        if not isinstance(ordered_prim_names, tuple):
+            raise ValueError(f"Input ordered prim names must be a tuple, got {type(ordered_prim_names)}")
+
+        if not ordered_prim_names:
+            raise ValueError("Input ordered prim names cannot be empty")
+
+        curr_prim_path = Sdf.Path.absoluteRootPath
+        for next_path in ordered_prim_names:
+            if not Sdf.Path.IsValidIdentifier(next_path):
+                raise ValueError(f"Invalid USD identifier: {next_path}")
+
+            curr_prim_path = curr_prim_path.AppendChild(next_path)
+            curr_prim = stage.GetPrimAtPath(curr_prim_path)
+            if curr_prim and curr_prim.IsValid() and not curr_prim.IsA(UsdGeom.Xform):
+                raise ValueError(
+                    f"Conflict at {curr_prim_path}: existing prim is '{curr_prim.GetTypeName()}', expected 'Xform'."
+                )
+
+        curr_prim_path = Sdf.Path.absoluteRootPath
+        xform = None
+        for next_path in ordered_prim_names:
+            curr_prim_path = curr_prim_path.AppendChild(next_path)
+            xform = UsdGeom.Xform.Define(stage, curr_prim_path)
+
+        return xform

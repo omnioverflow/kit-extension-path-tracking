@@ -1,4 +1,4 @@
-﻿# All folders starting with _ are local.
+# All folders starting with _ are local.
 _*/
 
 # Compiled python files.
@@ -44,3 +44,5 @@ env/
 ENV/
 
 /TEMP/
+
+.jupyter/

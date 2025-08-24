@@ -5,7 +5,12 @@ UI module for vehicle-to-curve path tracking extension.
 # pylint: disable=too-many-statements
 from typing import List, Optional
 
+import omni.usd
 from omni import ui
+from pxr import UsdGeom
+
+# Note: Avoid importing TrajectoryFactory at module import time to prevent test-time import errors
+# when optional deps (e.g., cmap) are unavailable. We'll import it lazily in the click handler.
 
 DEFAULT_BTN_HEIGHT = 22
 COLLAPSABLE_FRAME_HEIGHT = 32
@@ -188,6 +193,12 @@ class ExtensionUI:
                                 )
                                 ui.Spacer(height=LINE_HEIGHT / 8)
                                 ui.Button(
+                                    "Define a circular trajectory",
+                                    clicked_fn=self._on_click_define_circular_trajectory,
+                                    height=DEFAULT_BTN_HEIGHT,
+                                )
+                                ui.Spacer(height=LINE_HEIGHT / 8)
+                                ui.Button(
                                     "Load a sample BasisCurve",
                                     clicked_fn=self._controller.on_click_load_basis_curve,
                                     height=DEFAULT_BTN_HEIGHT,
@@ -239,6 +250,27 @@ class ExtensionUI:
                         )
 
         self._window.deferred_dock_in("Property")
+
+    def _on_click_define_circular_trajectory(self):
+        """Creates a circular BasisCurves trajectory on the current stage."""
+        # Lazy import to avoid importing optional deps during test discovery
+        from .trajectory_factory import TrajectoryFactory
+
+        stage = omni.usd.get_context().get_stage()
+        radius = 1000.0
+        center = (-radius, 0.0, 0.0)
+        TrajectoryFactory.create_linear_circle(
+            stage=stage,
+            prim_path="/World/CircularTrajectory",
+            center=center,
+            radius=radius,
+            num_points=128,
+            axis=UsdGeom.Tokens.y,  # Circle in XZ plane (Y-up)
+            periodic=True,
+            width=10.0,
+            cmap="plasma",
+            reverse_cmap=True,
+        )
 
     def teardown(self):
         """Clean up and release UI references."""

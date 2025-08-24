@@ -148,7 +148,6 @@ template_name = "omni.usd_composer"
 "omni.physics" = {}
 "omni.physx.vehicle" = {}
 "o2.vehicle_composer_setup_extension" = { order = 1000 } # we are running that at the end
-"o2.vehicle.path_tracking" = {}
 
 
 # Windows only extensions
@@ -162,6 +161,7 @@ fastShutdown = true
 name = "Vehicle Composer Sample"
 useFabricSceneDelegate = true  # Turn on the Fabric scene delegate by default
 show_developer_preference_section = false
+python.extraPaths = ["${app}/../../../target-deps/pip_prebundle"]
 
 
 [settings.app.environment]
@@ -343,7 +343,7 @@ communityTabEnabled = true
 foundation.verifyOsVersion.enabled = false
 plugins.'carb.profiler-cpu.plugin'.filePath = "${shared_documents}/create_profile.ct.json.gz"
 privacy.externalBuild = true
-renderer.active = "rtx" # RTX As the default renderer always
+renderer.active = "rtx" # RTX As The default renderer always
 renderer.enabled = "rtx"  # iray, pxr
 structuredLog.enable = true
 
