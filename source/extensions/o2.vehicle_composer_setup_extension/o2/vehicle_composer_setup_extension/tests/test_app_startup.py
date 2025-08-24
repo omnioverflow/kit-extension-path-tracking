@@ -49,7 +49,10 @@ class TestAppStartup(AsyncTestCase):
                 elif "[Error]" in line:
                     error_count += 1
 
-        test_result = {"startup_warning_count": warning_count, "startup_error_count": error_count}
+        test_result = {
+            "startup_warning_count": warning_count,
+            "startup_error_count": error_count,
+        }
         print(f"App Startup Warning count: {warning_count}")
         print(f"App Startup Error count: {error_count}")
         return warning_count, error_count

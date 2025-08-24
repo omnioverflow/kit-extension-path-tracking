@@ -38,7 +38,9 @@ class PurePursuitScenario(Scenario):
 
         self._stage = omni.usd.get_context().get_stage()
         self._vehicle = Vehicle(
-            self._stage.GetPrimAtPath(vehicle_path), self._MAX_STEER_ANGLE_RADIANS, enable_rear_steering
+            self._stage.GetPrimAtPath(vehicle_path),
+            self._MAX_STEER_ANGLE_RADIANS,
+            enable_rear_steering,
         )
         self._debug_render = DebugRenderer(self._vehicle.get_bbox_size())
         self._path_tracker = PurePursuitPathTracker(math.pi / 4)
@@ -67,7 +69,9 @@ class PurePursuitScenario(Scenario):
         Steering/acceleration vehicle control heuristic, generalized for any stage up-axis.
         """
         if distance is None:
-            distance, _ = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
+            distance, _ = self._vehicle.is_close_to(
+                dest_position, self._lookahead_distance
+            )
 
         curr_vehicle_pos = self._vehicle.curr_position()
 
@@ -75,7 +79,9 @@ class PurePursuitScenario(Scenario):
         axle_front = self._vehicle.axle_position(Axle.FRONT)
         axle_rear = self._vehicle.axle_position(Axle.REAR)
 
-        self._debug_render.draw_vehicle_debug(self._vehicle, self._trajectory, axle_front, axle_rear, forward, up)
+        self._debug_render.draw_vehicle_debug(
+            self._vehicle, self._trajectory, axle_front, axle_rear, forward, up
+        )
         self._debug_render.update_path_to_dest(curr_vehicle_pos, dest_position)
 
         steer_angle = self._path_tracker.on_step(axle_front, axle_rear, dest_position)
@@ -132,7 +138,9 @@ class PurePursuitScenario(Scenario):
         dest_position = self._trajectory.point()
         # Run vehicle control unless reached the destination
         if dest_position:
-            distance, is_close_to_dest = self._vehicle.is_close_to(dest_position, self._lookahead_distance)
+            distance, is_close_to_dest = self._vehicle.is_close_to(
+                dest_position, self._lookahead_distance
+            )
             if is_close_to_dest:
                 dest_position = self._trajectory.next_point()
             else:

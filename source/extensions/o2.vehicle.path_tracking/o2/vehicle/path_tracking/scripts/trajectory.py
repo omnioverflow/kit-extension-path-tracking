@@ -25,7 +25,9 @@ class Trajectory:
             T = cache.GetLocalToWorldTransform(curve_prim)
 
             for i in range(self._num_points):
-                p = Gf.Vec4d(self._points[i][0], self._points[i][1], self._points[i][2], 1.0)
+                p = Gf.Vec4d(
+                    self._points[i][0], self._points[i][1], self._points[i][2], 1.0
+                )
                 p_ = p * T
                 self._points[i] = Gf.Vec3f(p_[0], p_[1], p_[2])
         else:
@@ -56,7 +58,9 @@ class Trajectory:
         """
         Returns current point.
         """
-        return self._points[self._pointer] if self._pointer < len(self._points) else None
+        return (
+            self._points[self._pointer] if self._pointer < len(self._points) else None
+        )
 
     def next_point(self):
         """

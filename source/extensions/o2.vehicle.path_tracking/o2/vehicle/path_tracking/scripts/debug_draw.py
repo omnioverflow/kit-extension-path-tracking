@@ -180,12 +180,18 @@ class DebugRenderer:
             points (list[Gf.Vec3f]): The list of trajectory points to draw.
         """
         if not self._trajectory_segments_cache:
-            self._trajectory_segments_cache = [(points[i], points[i + 1]) for i in range(len(points) - 1)]
+            self._trajectory_segments_cache = [
+                (points[i], points[i + 1]) for i in range(len(points) - 1)
+            ]
 
         for p1, p2 in self._trajectory_segments_cache:
-            self._draw_segment(p1, p2, ColorMap.TRAJECTORY_LINE, LineThicknessMap.TRAJECTORY_LINE)
+            self._draw_segment(
+                p1, p2, ColorMap.TRAJECTORY_LINE, LineThicknessMap.TRAJECTORY_LINE
+            )
 
-    def draw_vehicle_debug(self, vehicle, trajectory, front_axle_pos, rear_axle_pos, forward, up):
+    def draw_vehicle_debug(
+        self, vehicle, trajectory, front_axle_pos, rear_axle_pos, forward, up
+    ):
         """
         Draws the vehicle debug overlay.
         """

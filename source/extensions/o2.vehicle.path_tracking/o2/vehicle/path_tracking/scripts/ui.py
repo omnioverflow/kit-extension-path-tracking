@@ -37,12 +37,24 @@ CollapsableFrameStyle = {
     },
     "CollapsableFrame:hovered": {"secondary_color": 0xFF3C3C3C},
     "CollapsableFrame:pressed": {"secondary_color": 0xFF333333},
-    "Button": {"margin_height": 0, "margin_width": ELEM_MARGIN, "border_radius": BORDER_RADIUS},
+    "Button": {
+        "margin_height": 0,
+        "margin_width": ELEM_MARGIN,
+        "border_radius": BORDER_RADIUS,
+    },
     "Button:selected": {"background_color": 0xFF666666},
     "Button.Label:disabled": {"color": 0xFF888888},
-    "Slider": {"margin_height": 0, "margin_width": ELEM_MARGIN, "border_radius": BORDER_RADIUS},
+    "Slider": {
+        "margin_height": 0,
+        "margin_width": ELEM_MARGIN,
+        "border_radius": BORDER_RADIUS,
+    },
     "Slider:disabled": {"color": 0xFF888888},
-    "ComboBox": {"margin_height": 0, "margin_width": ELEM_MARGIN, "border_radius": BORDER_RADIUS},
+    "ComboBox": {
+        "margin_height": 0,
+        "margin_width": ELEM_MARGIN,
+        "border_radius": BORDER_RADIUS,
+    },
     "Label": {"margin_height": 0, "margin_width": ELEM_MARGIN},
     "Label:disabled": {"color": 0xFF888888},
 }
@@ -120,13 +132,18 @@ class ExtensionUI:
 
     def build_ui(self, lookahead_distance, attachments):
         """Constructs the UI layout."""
-        self._window = ui.Window("Vehicle Path Tracking Extension (Beta)", width=300, height=300)
+        self._window = ui.Window(
+            "Vehicle Path Tracking Extension (Beta)", width=300, height=300
+        )
         with self._window.frame:
             with ui.HStack():
                 # Column #1
                 with ui.VStack():
                     self._settings_frame = ui.CollapsableFrame(
-                        "SETTINGS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT, style=CollapsableFrameStyle
+                        "SETTINGS",
+                        collapsed=False,
+                        height=COLLAPSABLE_FRAME_HEIGHT,
+                        style=CollapsableFrameStyle,
                     )
                     with self._settings_frame:
                         with ui.VStack():
@@ -139,23 +156,34 @@ class ExtensionUI:
                                     self._controller.on_changed_enabled_debug
                                 )
                             ui.Spacer(height=LINE_HEIGHT / 4)
-                            ui.Label("REFERENCE COORDINATE SYSTEM: Up-axis: Y-axis (fixed)")
+                            ui.Label(
+                                "REFERENCE COORDINATE SYSTEM: Up-axis: Y-axis (fixed)"
+                            )
                             ui.Spacer(height=LINE_HEIGHT / 4)
                             with ui.HStack(width=width, height=height):
                                 ui.Label("Pure Pursuit look ahead distance: ")
                                 self._lookahead_field = ui.FloatField(width=64.0)
-                                self._lookahead_field.model.set_value(lookahead_distance)
-                                self._lookahead_field.model.add_end_edit_fn(self._notify_lookahead_distance_changed)
+                                self._lookahead_field.model.set_value(
+                                    lookahead_distance
+                                )
+                                self._lookahead_field.model.add_end_edit_fn(
+                                    self._notify_lookahead_distance_changed
+                                )
                             with ui.HStack(width=width, height=height):
                                 ui.Label("Trajectory Loop:")
-                                self._checkbox_trajectory_loop = ui.CheckBox(name="TracjectoryLoop")
+                                self._checkbox_trajectory_loop = ui.CheckBox(
+                                    name="TracjectoryLoop"
+                                )
                                 self._checkbox_trajectory_loop.model.set_value(False)
                                 self._checkbox_trajectory_loop.model.add_value_changed_fn(
                                     self._controller.on_trajectory_loop_value_changed
                                 )
 
                     self._controls_frame = ui.CollapsableFrame(
-                        "CONTROLS", collapsed=False, height=COLLAPSABLE_FRAME_HEIGHT, style=CollapsableFrameStyle
+                        "CONTROLS",
+                        collapsed=False,
+                        height=COLLAPSABLE_FRAME_HEIGHT,
+                        style=CollapsableFrameStyle,
                     )
                     with self._controls_frame:
                         with ui.HStack():
@@ -225,7 +253,10 @@ class ExtensionUI:
                                 style=IMPORTANT_BUTTON_STYLE,
                             )
                             ui.Spacer(height=LINE_HEIGHT / 8)
-                            ui.Button("Clear All Attachments", clicked_fn=self._controller.on_click_clear_attachments)
+                            ui.Button(
+                                "Clear All Attachments",
+                                clicked_fn=self._controller.on_click_clear_attachments,
+                            )
 
                 self._attachments_frame = ui.CollapsableFrame(
                     "VEHICLE-TO-CURVE attachments",
@@ -234,13 +265,20 @@ class ExtensionUI:
                     style=CollapsableFrameStyle,
                 )
                 with self._attachments_frame:
-                    with ui.VStack(direction=ui.Direction.TOP_TO_BOTTOM, height=20, style=CollapsableFrameStyle):
+                    with ui.VStack(
+                        direction=ui.Direction.TOP_TO_BOTTOM,
+                        height=20,
+                        style=CollapsableFrameStyle,
+                    ):
                         if attachments and len(attachments) > 0:
                             self._attachment_label = ui.Label(
-                                "Active vehicle-to-curve attachments:", alignment=ui.Alignment.TOP
+                                "Active vehicle-to-curve attachments:",
+                                alignment=ui.Alignment.TOP,
                             )
                         else:
-                            self._attachment_label = ui.Label("No active vehicle-to-curve attachments")
+                            self._attachment_label = ui.Label(
+                                "No active vehicle-to-curve attachments"
+                            )
                         self._attachment_model = AttachmentModel(attachments)
                         ui.TreeView(
                             self._attachment_model,
@@ -295,5 +333,7 @@ class ExtensionUI:
         """Updates the UI with current attachment info."""
         self._attachment_model.attachments_changed(attachments)
         self._attachment_label.text = (
-            "Active vehicle-to-curve attachments:" if attachments else "No active vehicle-to-curve attachments"
+            "Active vehicle-to-curve attachments:"
+            if attachments
+            else "No active vehicle-to-curve attachments"
         )

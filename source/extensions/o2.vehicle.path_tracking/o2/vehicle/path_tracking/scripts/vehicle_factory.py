@@ -1,4 +1,5 @@
 """VehicleFactory: Static factory for creating PhysX vehicles in Omniverse."""
+
 from typing import Callable, Optional, Tuple
 
 import omni
@@ -34,12 +35,18 @@ class VehicleFactory:
         VehicleFactory._ensure_timeline_stopped()
 
         root_parent = parent_path or VehicleFactory._resolve_parent_root(stage)
-        unit_scale, vertical_axis, longitudinal_axis = VehicleFactory._derive_units_and_axes(stage)
+        unit_scale, vertical_axis, longitudinal_axis = (
+            VehicleFactory._derive_units_and_axes(stage)
+        )
 
-        vdm = physxVehicleWizard.VehicleDataManager(unit_scale, vertical_axis, longitudinal_axis)
+        vdm = physxVehicleWizard.VehicleDataManager(
+            unit_scale, vertical_axis, longitudinal_axis
+        )
         vd = vdm.vehicleData  # vehicleData holds the unit scale in some versions
 
-        base_vehicle = VehicleFactory._compose_base_vehicle_path(root_parent, vehicle_name)
+        base_vehicle = VehicleFactory._compose_base_vehicle_path(
+            root_parent, vehicle_name
+        )
         vehicle_root_path = omni.usd.get_stage_next_free_path(
             stage, base_vehicle, prepend_default_prim=False, source_prim=None
         )
@@ -51,40 +58,45 @@ class VehicleFactory:
         if customize:
             customize(vdm, vd, stage)
 
-        success, (messages, tracker) = physxVehicleWizard.commands.PhysXVehicleWizardCreateCommand.execute(vd)
+        success, (messages, tracker) = (
+            physxVehicleWizard.commands.PhysXVehicleWizardCreateCommand.execute(vd)
+        )
         return success, messages, tracker, vehicle_root_path, shared_root_path
-
 
     @staticmethod
     def create_standard(
-        stage: Usd.Stage,
-        **kwargs
+        stage: Usd.Stage, **kwargs
     ) -> Tuple[bool, list, object, str, str]:
         """
         Convenience: create a 'standard' drive-type vehicle (if the wizard exposes the constant).
         Falls back gracefully if the symbol is absent in your version.
         """
+
         def preset(vdm, vd, _stage):
             # These APIs vary by Kit/extension version; guard with hasattr.
-            if hasattr(vdm, "set_drive_type") and hasattr(physxVehicleWizard, "DRIVE_TYPE_STANDARD"):
+            if hasattr(vdm, "set_drive_type") and hasattr(
+                physxVehicleWizard, "DRIVE_TYPE_STANDARD"
+            ):
                 vdm.set_drive_type(physxVehicleWizard.DRIVE_TYPE_STANDARD)
                 if hasattr(vdm, "update"):
                     vdm.update()
+
         return VehicleFactory.create_vehicle(stage, customize=preset, **kwargs)
 
     @staticmethod
-    def create_basic(
-        stage: Usd.Stage,
-        **kwargs
-    ) -> Tuple[bool, list, object, str, str]:
+    def create_basic(stage: Usd.Stage, **kwargs) -> Tuple[bool, list, object, str, str]:
         """
         Convenience: create a 'basic' drive-type vehicle if available.
         """
+
         def preset(vdm, vd, _stage):
-            if hasattr(vdm, "set_drive_type") and hasattr(physxVehicleWizard, "DRIVE_TYPE_BASIC"):
+            if hasattr(vdm, "set_drive_type") and hasattr(
+                physxVehicleWizard, "DRIVE_TYPE_BASIC"
+            ):
                 vdm.set_drive_type(physxVehicleWizard.DRIVE_TYPE_BASIC)
                 if hasattr(vdm, "update"):
                     vdm.update()
+
         return VehicleFactory.create_vehicle(stage, customize=preset, **kwargs)
 
     @staticmethod
@@ -116,8 +128,9 @@ class VehicleFactory:
         """Read (do not modify) current stage units/axes and map to wizard expectations."""
         meters_per_unit = UsdGeom.GetStageMetersPerUnit(stage)
         kilograms_per_unit = UsdPhysics.GetStageKilogramsPerUnit(stage)
-        unit_scale = physxVehicleWizard.UnitScale(lengthScale=1.0 / meters_per_unit,
-                                  massScale=1.0 / kilograms_per_unit)
+        unit_scale = physxVehicleWizard.UnitScale(
+            lengthScale=1.0 / meters_per_unit, massScale=1.0 / kilograms_per_unit
+        )
 
         up = UsdGeom.GetStageUpAxis(stage)
         if up == UsdGeom.Tokens.z:
@@ -129,12 +142,16 @@ class VehicleFactory:
         return unit_scale, vertical_axis, longitudinal_axis
 
     @staticmethod
-    def _compose_base_vehicle_path(parent_root: str, vehicle_name: Optional[str]) -> str:
+    def _compose_base_vehicle_path(
+        parent_root: str, vehicle_name: Optional[str]
+    ) -> str:
         """
         Compose a base path for the vehicle root.
         """
         if vehicle_name:
-            name_path = vehicle_name if vehicle_name.startswith("/") else f"/{vehicle_name}"
+            name_path = (
+                vehicle_name if vehicle_name.startswith("/") else f"/{vehicle_name}"
+            )
             return f"{parent_root}{name_path}"
 
         return f"{parent_root}{physxVehicleWizard.VEHICLE_ROOT_BASE_PATH}"

@@ -16,7 +16,9 @@ import omni.ext
 # `o2.vehicle.pip_prebundle_extension.some_public_function(x)`
 def some_public_function(x: int):
     """This is a public function that can be called from other extensions."""
-    print(f"[o2.vehicle.pip_prebundle_extension] some_public_function was called with {x}")
+    print(
+        f"[o2.vehicle.pip_prebundle_extension] some_public_function was called with {x}"
+    )
     return x**x
 
 
@@ -26,6 +28,7 @@ def some_public_function(x: int):
 # extension gets disabled on_shutdown() is called.
 class MyExtension(omni.ext.IExt):
     """This is a blank extension template."""
+
     # ext_id is the current extension id. It can be used with the extension
     # manager to query additional information, like where this extension is
     # located on the filesystem.

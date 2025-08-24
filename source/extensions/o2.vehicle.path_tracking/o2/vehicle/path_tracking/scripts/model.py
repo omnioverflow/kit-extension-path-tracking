@@ -20,7 +20,13 @@ class ExtensionModel:
     ROOT_PATH = "/World"
     VEHICLE_PRIM_NAME = "Vehicle"
 
-    def __init__(self, extension_id, default_lookahead_distance, max_lookahed_distance, min_lookahed_distance):
+    def __init__(
+        self,
+        extension_id,
+        default_lookahead_distance,
+        max_lookahed_distance,
+        min_lookahed_distance,
+    ):
         self._ext_id = extension_id
         self._METADATA_KEY = f"{extension_id.split('-')[0]}.metadata"
         self._lookahead_distance = default_lookahead_distance
@@ -29,7 +35,9 @@ class ExtensionModel:
 
         # self.meters_per_unit = 0.01
         # UsdGeom.SetStageMetersPerUnit(omni.usd.get_context().get_stage(), self.meters_per_unit)
-        self.meters_per_unit = UsdGeom.GetStageMetersPerUnit(omni.usd.get_context().get_stage())
+        self.meters_per_unit = UsdGeom.GetStageMetersPerUnit(
+            omni.usd.get_context().get_stage()
+        )
 
         stage = omni.usd.get_context().get_stage()
         self._up_axis = UsdGeom.GetStageUpAxis(stage).upper()
@@ -46,7 +54,7 @@ class ExtensionModel:
     def teardown(self):
         """Cleans up the extension model."""
         self.stop_scenarios()
-        self._meters_per_unit= None
+        self._meters_per_unit = None
         self._up_axis = None
         self._scenario_managers = None
 
@@ -98,7 +106,9 @@ class ExtensionModel:
                 curve_path = found_curve.GetPath()
 
         if not vehicle_prim:
-            carb.log_warn("[attach_vehicle_to_curve] No vehicle prim with PhysxVehicleAPI found.")
+            carb.log_warn(
+                "[attach_vehicle_to_curve] No vehicle prim with PhysxVehicleAPI found."
+            )
             return
         if not curve_prim:
             carb.log_warn("[attach_vehicle_to_curve] No BasisCurve prim found.")
@@ -106,7 +116,9 @@ class ExtensionModel:
 
         self.vehicle_to_curve_attachments[vehicle_path] = curve_path
         self._dirty = True
-        carb.log_info(f"[attach_vehicle_to_curve] Attached {vehicle_path} to {curve_path}")
+        carb.log_info(
+            f"[attach_vehicle_to_curve] Attached {vehicle_path} to {curve_path}"
+        )
 
     def attach_selected_prims(self, selected_prim_paths):
         """
@@ -129,7 +141,9 @@ class ExtensionModel:
         """
         Does vehicle-to-curve attachment from the metadata dictionary directly.
         """
-        self.attach_vehicle_to_curve([metadata["WizardVehicle"], metadata["BasisCurve"]])
+        self.attach_vehicle_to_curve(
+            [metadata["WizardVehicle"], metadata["BasisCurve"]]
+        )
 
     def _cleanup_scenario_managers(self):
         """Cleans up scenario managers. Often useful when tracked data becomes obsolete."""
@@ -236,18 +250,26 @@ class ExtensionModel:
         usd_context = omni.usd.get_context()
         stage = usd_context.get_stage()
         vehicleData = VehicleWizard.VehicleData(
-            self.get_unit_scale(stage), VehicleWizard.VehicleData.AXIS_Y, VehicleWizard.VehicleData.AXIS_Z
+            self.get_unit_scale(stage),
+            VehicleWizard.VehicleData.AXIS_Y,
+            VehicleWizard.VehicleData.AXIS_Z,
         )
 
         root_vehicle_path = self.ROOT_PATH + VehicleWizard.VEHICLE_ROOT_BASE_PATH
-        root_vehicle_path = omni.usd.get_stage_next_free_path(stage, root_vehicle_path, True)
+        root_vehicle_path = omni.usd.get_stage_next_free_path(
+            stage, root_vehicle_path, True
+        )
         root_shared_path = self.ROOT_PATH + VehicleWizard.SHARED_DATA_ROOT_BASE_PATH
-        root_vehicle_path = omni.usd.get_stage_next_free_path(stage, root_shared_path, True)
+        root_vehicle_path = omni.usd.get_stage_next_free_path(
+            stage, root_shared_path, True
+        )
 
         vehicleData.rootVehiclePath = root_vehicle_path
         vehicleData.rootSharedPath = root_shared_path
 
-        (success, (messageList, scenePath)) = PhysXVehicleWizardCreateCommand.execute(vehicleData)
+        (success, (messageList, scenePath)) = PhysXVehicleWizardCreateCommand.execute(
+            vehicleData
+        )
 
         assert success
         assert not messageList
@@ -260,9 +282,15 @@ class ExtensionModel:
         Load a sample BasisCurve serialiazed in USD.
         """
         usd_context = omni.usd.get_context()
-        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
+        ext_path = (
+            omni.kit.app.get_app()
+            .get_extension_manager()
+            .get_extension_path(self._ext_id)
+        )
         basis_curve_prim_path = "/BasisCurves"
-        basis_curve_prim_path = omni.usd.get_stage_next_free_path(usd_context.get_stage(), basis_curve_prim_path, True)
+        basis_curve_prim_path = omni.usd.get_stage_next_free_path(
+            usd_context.get_stage(), basis_curve_prim_path, True
+        )
         basis_curve_usd_path = f"{ext_path}/data/usd/curve.usd"
         omni.kit.commands.execute(
             "CreateReferenceCommand",
@@ -274,9 +302,15 @@ class ExtensionModel:
     def load_forklift_rig(self):
         """Load a forklift model from USD with already exisitng physx vehicle rig."""
         usd_context = omni.usd.get_context()
-        ext_path = omni.kit.app.get_app().get_extension_manager().get_extension_path(self._ext_id)
+        ext_path = (
+            omni.kit.app.get_app()
+            .get_extension_manager()
+            .get_extension_path(self._ext_id)
+        )
         forklift_prim_path = "/ForkliftRig"
-        forklift_prim_path = omni.usd.get_stage_next_free_path(usd_context.get_stage(), forklift_prim_path, True)
+        forklift_prim_path = omni.usd.get_stage_next_free_path(
+            usd_context.get_stage(), forklift_prim_path, True
+        )
         vehicle_usd_path = f"{ext_path}/data/usd/forklift/forklift_rig.usd"
         omni.kit.commands.execute(
             "CreateReferenceCommand",
@@ -295,7 +329,11 @@ class ExtensionModel:
         stage = omni.usd.get_context().get_stage()
         if not stage.GetPrimAtPath(default_prim_path):
             omni.kit.commands.execute(
-                "CreatePrim", prim_path=default_prim_path, prim_type="Xform", select_new_prim=True, attributes={}
+                "CreatePrim",
+                prim_path=default_prim_path,
+                prim_type="Xform",
+                select_new_prim=True,
+                attributes={},
             )
             stage.SetDefaultPrim(stage.GetPrimAtPath(default_prim_path))
 
@@ -317,7 +355,10 @@ class ExtensionModel:
         attachment_preset = metadata.get(self._METADATA_KEY)
         if not attachment_preset or attachment_preset is None:
             # Fallback to defaults
-            attachment_preset = {"WizardVehicle": vehicle_path, "BasisCurve": "/World/BasisCurves/BasisCurves"}
+            attachment_preset = {
+                "WizardVehicle": vehicle_path,
+                "BasisCurve": "/World/BasisCurves/BasisCurves",
+            }
         return attachment_preset
 
     def get_lookahead_distance(self):
@@ -326,7 +367,9 @@ class ExtensionModel:
 
     def update_lookahead_distance(self, distance):
         """Updates the lookahead distance parameter for pure pursuit"""
-        clamped_distance = max(self.MIN_LOOKAHEAD_distance, min(self.MAX_LOOKAHEAD_distance, distance))
+        clamped_distance = max(
+            self.MIN_LOOKAHEAD_distance, min(self.MAX_LOOKAHEAD_distance, distance)
+        )
 
         for scenario_manager in self._scenario_managers:
             scenario_manager.scenario.set_lookahead_distance(clamped_distance)

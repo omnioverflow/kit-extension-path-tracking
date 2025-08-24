@@ -14,7 +14,6 @@ except Exception:  # pragma: no cover - fallback for test environments without c
 import omni.usd
 from pxr import Gf, Sdf, Tf, Usd, UsdGeom, Vt
 
-
 DEFAULT_CMAP_NAME = "RdYlGn_r"
 
 
@@ -81,7 +80,9 @@ class TrajectoryFactory:
                 # YZ plane
                 p = Gf.Vec3f(center_v[0], center_v[1] + c, center_v[2] + s)
             else:
-                raise ValueError(f"Invalid axis '{axis_token}', must be UsdGeom.Tokens.x/y/z.")
+                raise ValueError(
+                    f"Invalid axis '{axis_token}', must be UsdGeom.Tokens.x/y/z."
+                )
             points.append(p)
         return points
 
@@ -119,7 +120,7 @@ class TrajectoryFactory:
         *,
         axis: UsdGeom.Tokens = UsdGeom.Tokens.z,
         periodic: bool = True,
-        width: float = 0.05,        # e.g., "viridis", "inferno"
+        width: float = 0.05,  # e.g., "viridis", "inferno"
         reverse_cmap: bool = False,
         cmap: Optional[str] = DEFAULT_CMAP_NAME,
     ) -> UsdGeom.BasisCurves:
@@ -131,7 +132,9 @@ class TrajectoryFactory:
 
         curve = UsdGeom.BasisCurves.Define(stage, prim_path)
         curve.CreateTypeAttr(UsdGeom.Tokens.linear)
-        curve.CreateWrapAttr(UsdGeom.Tokens.periodic if periodic else UsdGeom.Tokens.nonperiodic)
+        curve.CreateWrapAttr(
+            UsdGeom.Tokens.periodic if periodic else UsdGeom.Tokens.nonperiodic
+        )
         curve.CreatePointsAttr(points)
         curve.CreateCurveVertexCountsAttr([len(points)])
         curve.CreateWidthsAttr([width] * len(points))
@@ -168,7 +171,9 @@ class TrajectoryFactory:
         curve = UsdGeom.BasisCurves.Define(stage, prim_path)
         curve.CreateTypeAttr(UsdGeom.Tokens.cubic)
         curve.CreateBasisAttr(UsdGeom.Tokens.bezier)
-        curve.CreateWrapAttr(UsdGeom.Tokens.periodic if periodic else UsdGeom.Tokens.nonperiodic)
+        curve.CreateWrapAttr(
+            UsdGeom.Tokens.periodic if periodic else UsdGeom.Tokens.nonperiodic
+        )
         curve.CreatePointsAttr(pts)
         curve.CreateCurveVertexCountsAttr([len(pts)])
         curve.CreateWidthsAttr([width] * len(pts))

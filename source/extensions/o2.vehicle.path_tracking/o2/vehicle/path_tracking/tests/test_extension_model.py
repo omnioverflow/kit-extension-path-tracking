@@ -61,6 +61,7 @@ def clear_stage_cache():
     """Clear the USD stage cache."""
     try:
         from pxr import Usd  # type: ignore
+
         Usd.StageCache.Get().Clear()
     except Exception as e:
         carb.log_warn(f"Failed to clear USD stage cache: {e}")
@@ -74,6 +75,7 @@ def clear_selection(usd_context=None):
         usd_context.get_selection().set_selected_prim_paths([], False)
     except Exception as e:
         carb.log_error(f"Failed to clear selection: {e}")
+
 
 async def wait_for_app_update(app=None, count=1):
     """Wait for the application to process the next update."""

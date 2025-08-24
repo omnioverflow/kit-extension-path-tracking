@@ -45,8 +45,10 @@ class SimStepTracker:
         self._scenaario_done_signal = scenaario_done_signal
 
         self._physx = omni.physx.get_physx_interface()
-        self._physx_sim_event_subscription = self._physx.get_simulation_event_stream_v2().create_subscription_to_pop(
-            self._on_simulation_event
+        self._physx_sim_event_subscription = (
+            self._physx.get_simulation_event_stream_v2().create_subscription_to_pop(
+                self._on_simulation_event
+            )
         )
 
         self._has_started = False
@@ -63,9 +65,7 @@ class SimStepTracker:
 
         self._physx_sim_event_subscription = None
 
-        self._physx = (
-            None  # should release automatically (note: explicit release call results in double release being reported)
-        )
+        self._physx = None  # should release automatically (note: explicit release call results in double release being reported)
 
         self._scenaario_done_signal.set()
 
@@ -89,7 +89,9 @@ class SimStepTracker:
                 self._scenario.on_start()
                 self._iteration_count = 0
                 self._total_time = 0
-                self._physx_step_event_subscription = self._physx.subscribe_physics_step_events(self._on_physics_step)
+                self._physx_step_event_subscription = (
+                    self._physx.subscribe_physics_step_events(self._on_physics_step)
+                )
                 self._has_started = True
             elif self._reset_on_next_resume:
                 self._reset_on_next_resume = False
@@ -123,7 +125,9 @@ class StageEventListener:
     def __init__(self, sim_step_tracker):
         self._sim_step_tracker = sim_step_tracker
         self._stage_event_subscription = (
-            omni.usd.get_context().get_stage_event_stream().create_subscription_to_pop(self._on_stage_event)
+            omni.usd.get_context()
+            .get_stage_event_stream()
+            .create_subscription_to_pop(self._on_stage_event)
         )
         self._stage_is_closing = False
         self.restart_after_stop = False

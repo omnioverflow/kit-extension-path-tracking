@@ -32,8 +32,8 @@ from omni.kit.property.usd import PrimPathWidget
 from omni.kit.quicklayout import QuickLayout
 from omni.kit.window.title import get_main_window_title
 
-DATA_PATH = Path(carb.tokens.get_tokens_interface().resolve(
-    "${o2.vehicle_composer_setup_extension}")
+DATA_PATH = Path(
+    carb.tokens.get_tokens_interface().resolve("${o2.vehicle_composer_setup_extension}")
 )
 
 
@@ -51,6 +51,7 @@ async def _load_layout(layout_file: str, keep_windows_open=False):
 
 class VehicleComposerSetupExtension(omni.ext.IExt):
     """Create Final Configuration"""
+
     def on_startup(self, _ext_id):
         """
         setup the window layout, menu, final configuration
@@ -71,17 +72,16 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
 
         # These two settings do not co-operate well on ADA cards, so for
         # now simulate a toggle of the present thread on startup to work around
-        if self._settings.get("/exts/omni.kit.renderer.core/present/enabled") \
-            and self._settings.get(
-            "/exts/omni.kit.widget.viewport/autoAttach/mode"
-        ):
+        if self._settings.get(
+            "/exts/omni.kit.renderer.core/present/enabled"
+        ) and self._settings.get("/exts/omni.kit.widget.viewport/autoAttach/mode"):
+
             async def _toggle_present(settings, n_waits: int = 1):
                 async def _toggle_setting(app, enabled: bool, n_waits: int):
                     for _ in range(n_waits):
                         await app.next_update_async()
                     settings.set(
-                        "/exts/omni.kit.renderer.core/present/enabled",
-                        enabled
+                        "/exts/omni.kit.renderer.core/present/enabled", enabled
                     )
 
                 app = omni.kit.app.get_app()
@@ -97,16 +97,17 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         fabric_persistent_setting = self._settings.get(
             "/persistent/app/useFabricSceneDelegate"
         )
-        fabric_enabled: bool = fabric_app_setting if \
-            fabric_persistent_setting is None else fabric_persistent_setting
+        fabric_enabled: bool = (
+            fabric_app_setting
+            if fabric_persistent_setting is None
+            else fabric_persistent_setting
+        )
 
         self._settings.set("/app/useFabricSceneDelegate", fabric_enabled)
 
-        self._sub_fabric_delegate_changed = \
-            omni.kit.app.SettingChangeSubscription(
-                "/app/useFabricSceneDelegate",
-                self._on_fabric_delegate_changed
-            )
+        self._sub_fabric_delegate_changed = omni.kit.app.SettingChangeSubscription(
+            "/app/useFabricSceneDelegate", self._on_fabric_delegate_changed
+        )
 
         # Adjust the Window Title to show the Create Version
         window_title = get_main_window_title()
@@ -115,7 +116,7 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         if not app_version:
             with open(
                 carb.tokens.get_tokens_interface().resolve("${app}/../VERSION"),
-                encoding="utf-8"
+                encoding="utf-8",
             ) as f:
                 app_version = f.read()
 
@@ -135,11 +136,19 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         try:
             # using imgui directly to adjust some color and Variable
             import omni.kit.imgui as _imgui
+
             imgui = _imgui.acquire_imgui()
             if imgui.is_valid():
-                imgui.push_style_color(_imgui.StyleColor.ScrollbarGrab, carb.Float4(0.4, 0.4, 0.4, 1))
-                imgui.push_style_color(_imgui.StyleColor.ScrollbarGrabHovered, carb.Float4(0.6, 0.6, 0.6, 1))
-                imgui.push_style_color(_imgui.StyleColor.ScrollbarGrabActive, carb.Float4(0.8, 0.8, 0.8, 1))
+                imgui.push_style_color(
+                    _imgui.StyleColor.ScrollbarGrab, carb.Float4(0.4, 0.4, 0.4, 1)
+                )
+                imgui.push_style_color(
+                    _imgui.StyleColor.ScrollbarGrabHovered,
+                    carb.Float4(0.6, 0.6, 0.6, 1),
+                )
+                imgui.push_style_color(
+                    _imgui.StyleColor.ScrollbarGrabActive, carb.Float4(0.8, 0.8, 0.8, 1)
+                )
                 imgui.push_style_var_float(_imgui.StyleVar.DockSplitterSize, 2)
                 imgui_style_applied = True
         except ImportError:
@@ -160,25 +169,22 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
 
         self.__menu_update()
 
-        if not test_mode and not \
-                self._settings.get("/app/content/emptyStageOnStart"):
+        if not test_mode and not self._settings.get("/app/content/emptyStageOnStart"):
             asyncio.ensure_future(self.__new_stage())
 
-        startup_time = \
-            omni.kit.app.get_app_interface().get_time_since_start_s()
-        self._settings.set(
-            "/crashreporter/data/startup_time", f"{startup_time}"
-        )
+        startup_time = omni.kit.app.get_app_interface().get_time_since_start_s()
+        self._settings.set("/crashreporter/data/startup_time", f"{startup_time}")
 
         def show_documentation(*args):
             webbrowser.open(
                 "https://docs.omniverse.nvidia.com/composer/latest/index.html"
             )
+
         self._help_menu_items = [
             MenuItemDescription(
                 name="Documentation",
                 onclick_fn=show_documentation,
-                appear_after=[omni.kit.menu.utils.MenuItemOrder.FIRST]
+                appear_after=[omni.kit.menu.utils.MenuItemOrder.FIRST],
             )
         ]
         omni.kit.menu.utils.add_menu_items(self._help_menu_items, name="Help")
@@ -188,44 +194,35 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         This is trying to setup some defaults for extensions to avoid warnings.
         """
         self._settings.set_default("/persistent/app/omniverse/bookmarks", {})
+        self._settings.set_default("/persistent/app/stage/timeCodeRange", [0, 100])
+
         self._settings.set_default(
-            "/persistent/app/stage/timeCodeRange", [0, 100]
+            "/persistent/audio/context/closeAudioPlayerOnStop", False
         )
 
         self._settings.set_default(
-            "/persistent/audio/context/closeAudioPlayerOnStop",
-            False
-        )
-
-        self._settings.set_default(
-            "/persistent/app/primCreation/PrimCreationWithDefaultXformOps",
-            True
+            "/persistent/app/primCreation/PrimCreationWithDefaultXformOps", True
         )
         self._settings.set_default(
             "/persistent/app/primCreation/DefaultXformOpType",
-            "Scale, Rotate, Translate"
+            "Scale, Rotate, Translate",
         )
         self._settings.set_default(
-            "/persistent/app/primCreation/DefaultRotationOrder",
-            "ZYX"
+            "/persistent/app/primCreation/DefaultRotationOrder", "ZYX"
         )
         self._settings.set_default(
-            "/persistent/app/primCreation/DefaultXformOpPrecision",
-            "Double"
+            "/persistent/app/primCreation/DefaultXformOpPrecision", "Double"
         )
 
         # omni.kit.property.tagging
         self._settings.set_default(
-            "/persistent/exts/omni.kit.property.tagging/showAdvancedTagView",
-            False
+            "/persistent/exts/omni.kit.property.tagging/showAdvancedTagView", False
         )
         self._settings.set_default(
-            "/persistent/exts/omni.kit.property.tagging/showHiddenTags",
-            False
+            "/persistent/exts/omni.kit.property.tagging/showHiddenTags", False
         )
         self._settings.set_default(
-            "/persistent/exts/omni.kit.property.tagging/modifyHiddenTags",
-            False
+            "/persistent/exts/omni.kit.property.tagging/modifyHiddenTags", False
         )
 
         self._settings.set_default(
@@ -233,17 +230,14 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         )  # set default ambientLight intensity to Zero
 
     def _on_fabric_delegate_changed(
-            self, _v: str, event_type: carb.settings.ChangeEventType):
+        self, _v: str, event_type: carb.settings.ChangeEventType
+    ):
         if event_type == carb.settings.ChangeEventType.CHANGED:
-            enabled: bool = self._settings.get_as_bool(
-                "/app/useFabricSceneDelegate"
-            )
-            self._settings.set(
-                "/persistent/app/useFabricSceneDelegate", enabled
-            )
+            enabled: bool = self._settings.get_as_bool("/app/useFabricSceneDelegate")
+            self._settings.set("/persistent/app/useFabricSceneDelegate", enabled)
 
     async def __new_stage(self):
-        """Create a new stage """
+        """Create a new stage"""
         # 5 frame delay to allow Layout
         for _ in range(5):
             await omni.kit.app.get_app().next_update_async()
@@ -277,8 +271,9 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         kwargs = {"close_fds": False}
         if platform.system().lower() == "windows":
             if console:
-                kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE | \
-                    subprocess.CREATE_NEW_PROCESS_GROUP
+                kwargs["creationflags"] = (
+                    subprocess.CREATE_NEW_CONSOLE | subprocess.CREATE_NEW_PROCESS_GROUP
+                )
             else:
                 kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
 
@@ -293,7 +288,7 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         self._launch_app(
             "omni.create.launcher.kit",
             console=False,
-            custom_args={"--/app/auto_launch=false"}
+            custom_args={"--/app/auto_launch=false"},
         )
 
     async def __property_window(self):
@@ -303,8 +298,14 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         property_window = property_window_ext.get_window()
         property_window.set_scheme_delegate_layout(
             "Create Layout",
-            ["basis_curves_prim", "path_prim", "material_prim",
-             "xformable_prim", "shade_prim", "camera_prim"],
+            [
+                "basis_curves_prim",
+                "path_prim",
+                "material_prim",
+                "xformable_prim",
+                "shade_prim",
+                "camera_prim",
+            ],
         )
 
         # expand width of path_items so "Instancable" doesn't get wrapped
@@ -363,9 +364,7 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
                             MenuLayout.Item("Asset Validator"),
                         ],
                     ),
-                    MenuLayout.Sort(
-                        exclude_items=["Extensions"], sort_submenus=True
-                    ),
+                    MenuLayout.Sort(exclude_items=["Extensions"], sort_submenus=True),
                     MenuLayout.Item("New Viewport Window", remove=True),
                 ],
             ),
@@ -375,12 +374,9 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
                     MenuLayout.Item("Default", source="Reset Layout"),
                     MenuLayout.Seperator(),
                     MenuLayout.Item(
-                        "UI Toggle Visibility",
-                        source="Window/UI Toggle Visibility"
+                        "UI Toggle Visibility", source="Window/UI Toggle Visibility"
                     ),
-                    MenuLayout.Item(
-                        "Fullscreen Mode", source="Window/Fullscreen Mode"
-                    ),
+                    MenuLayout.Item("Fullscreen Mode", source="Window/Fullscreen Mode"),
                     MenuLayout.Seperator(),
                     MenuLayout.Item(
                         "Save Layout", source="Window/Layout/Save Layout..."
@@ -389,12 +385,8 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
                         "Load Layout", source="Window/Layout/Load Layout..."
                     ),
                     MenuLayout.Seperator(),
-                    MenuLayout.Item(
-                        "Quick Save", source="Window/Layout/Quick Save"
-                    ),
-                    MenuLayout.Item(
-                        "Quick Load", source="Window/Layout/Quick Load"
-                    ),
+                    MenuLayout.Item("Quick Save", source="Window/Layout/Quick Save"),
+                    MenuLayout.Item("Quick Load", source="Window/Layout/Quick Load"),
                 ],
             ),
         ]
@@ -407,12 +399,15 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
             if inspect.isfunction(parameter):
                 menu_dict = omni.kit.menu.utils.build_submenu_dict(
                     [
-                        MenuItemDescription(name=f"Layout/{name}",
-                                            onclick_fn=lambda: asyncio.ensure_future(parameter()),
-                                            hotkey=(carb.input.KEYBOARD_MODIFIER_FLAG_CONTROL, key)),
+                        MenuItemDescription(
+                            name=f"Layout/{name}",
+                            onclick_fn=lambda: asyncio.ensure_future(parameter()),
+                            hotkey=(carb.input.KEYBOARD_MODIFIER_FLAG_CONTROL, key),
+                        ),
                     ]
                 )
             else:
+
                 async def _active_layout(layout):
                     await _load_layout(layout)
                     # load layout file again to make sure layout correct
@@ -420,9 +415,13 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
 
                 menu_dict = omni.kit.menu.utils.build_submenu_dict(
                     [
-                        MenuItemDescription(name=f"Layout/{name}",
-                                            onclick_fn=lambda: asyncio.ensure_future(_active_layout(f"{DATA_PATH}/layouts/{parameter}.json")),
-                                            hotkey=(carb.input.KEYBOARD_MODIFIER_FLAG_CONTROL, key)),
+                        MenuItemDescription(
+                            name=f"Layout/{name}",
+                            onclick_fn=lambda: asyncio.ensure_future(
+                                _active_layout(f"{DATA_PATH}/layouts/{parameter}.json")
+                            ),
+                            hotkey=(carb.input.KEYBOARD_MODIFIER_FLAG_CONTROL, key),
+                        ),
                     ]
                 )
 
@@ -432,9 +431,7 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
 
             self._layout_menu_items.append(menu_dict)
 
-        add_layout_menu_entry(
-            "Reset Layout", "default", carb.input.KeyboardInput.KEY_1
-        )
+        add_layout_menu_entry("Reset Layout", "default", carb.input.KeyboardInput.KEY_1)
 
         # create Quick Load & Quick Save
         async def quick_save():
@@ -443,12 +440,8 @@ class VehicleComposerSetupExtension(omni.ext.IExt):
         async def quick_load():
             QuickLayout.quick_load(None, None)
 
-        add_layout_menu_entry(
-            "Quick Save", quick_save, carb.input.KeyboardInput.KEY_7
-        )
-        add_layout_menu_entry(
-            "Quick Load", quick_load, carb.input.KeyboardInput.KEY_8
-        )
+        add_layout_menu_entry("Quick Save", quick_save, carb.input.KeyboardInput.KEY_7)
+        add_layout_menu_entry("Quick Load", quick_load, carb.input.KeyboardInput.KEY_8)
 
         # open "Asset Stores" window
         ui.Workspace.show_window("Asset Stores")

@@ -29,8 +29,12 @@ class UpAxisHelper:
             raise RuntimeError("[UpAxisHelper] Failed to retrieve USD stage context.")
 
         UpAxisHelper._up_axis_token = UsdGeom.GetStageUpAxis(stage).upper()
-        UpAxisHelper._up_axis_index = {"X": 0, "Y": 1, "Z": 2}[UpAxisHelper._up_axis_token]
-        UpAxisHelper._flat_indices = [i for i in range(3) if i != UpAxisHelper._up_axis_index]
+        UpAxisHelper._up_axis_index = {"X": 0, "Y": 1, "Z": 2}[
+            UpAxisHelper._up_axis_token
+        ]
+        UpAxisHelper._flat_indices = [
+            i for i in range(3) if i != UpAxisHelper._up_axis_index
+        ]
 
         UpAxisHelper._initialized = True
 
@@ -84,11 +88,18 @@ class Utils:
                 Gf.Vec3f(0.0, half_size, half_size),
                 Gf.Vec3f(0.0, -half_size, half_size),
             ]
-            normals = [Gf.Vec3f(1, 0, 0), Gf.Vec3f(1, 0, 0), Gf.Vec3f(1, 0, 0), Gf.Vec3f(1, 0, 0)]
+            normals = [
+                Gf.Vec3f(1, 0, 0),
+                Gf.Vec3f(1, 0, 0),
+                Gf.Vec3f(1, 0, 0),
+                Gf.Vec3f(1, 0, 0),
+            ]
             indices = [0, 1, 2, 3]
             vertex_counts = [4]
 
-            return Utils.create_mesh(stage, path, points, normals, indices, vertex_counts)
+            return Utils.create_mesh(
+                stage, path, points, normals, indices, vertex_counts
+            )
 
         if axis == "Y":
             points = [
@@ -97,11 +108,18 @@ class Utils:
                 Gf.Vec3f(half_size, 0.0, half_size),
                 Gf.Vec3f(-half_size, 0.0, half_size),
             ]
-            normals = [Gf.Vec3f(0, 1, 0), Gf.Vec3f(0, 1, 0), Gf.Vec3f(0, 1, 0), Gf.Vec3f(0, 1, 0)]
+            normals = [
+                Gf.Vec3f(0, 1, 0),
+                Gf.Vec3f(0, 1, 0),
+                Gf.Vec3f(0, 1, 0),
+                Gf.Vec3f(0, 1, 0),
+            ]
             indices = [0, 1, 2, 3]
             vertex_counts = [4]
 
-            return Utils.create_mesh(stage, path, points, normals, indices, vertex_counts)
+            return Utils.create_mesh(
+                stage, path, points, normals, indices, vertex_counts
+            )
 
         points = [
             Gf.Vec3f(-half_size, -half_size, 0.0),
@@ -109,14 +127,21 @@ class Utils:
             Gf.Vec3f(half_size, half_size, 0.0),
             Gf.Vec3f(-half_size, half_size, 0.0),
         ]
-        normals = [Gf.Vec3f(0, 0, 1), Gf.Vec3f(0, 0, 1), Gf.Vec3f(0, 0, 1), Gf.Vec3f(0, 0, 1)]
+        normals = [
+            Gf.Vec3f(0, 0, 1),
+            Gf.Vec3f(0, 0, 1),
+            Gf.Vec3f(0, 0, 1),
+            Gf.Vec3f(0, 0, 1),
+        ]
         indices = [0, 1, 2, 3]
         vertex_counts = [4]
 
         mesh = Utils.create_mesh(stage, path, points, normals, indices, vertex_counts)
 
         # text coord
-        texCoords = mesh.CreatePrimvar("st", Sdf.ValueTypeNames.TexCoord2fArray, UsdGeom.Tokens.varying)
+        texCoords = mesh.CreatePrimvar(
+            "st", Sdf.ValueTypeNames.TexCoord2fArray, UsdGeom.Tokens.varying
+        )
         texCoords.Set([(0, 0), (1, 0), (1, 1), (0, 1)])
 
         return mesh
@@ -134,7 +159,14 @@ class Utils:
         return mesh
 
     @staticmethod
-    def add_ground_plane(stage, plane_path, axis, size=3000.0, position=Gf.Vec3f(0.0), color=Gf.Vec3f(0.2, 0.25, 0.25)):
+    def add_ground_plane(
+        stage,
+        plane_path,
+        axis,
+        size=3000.0,
+        position=Gf.Vec3f(0.0),
+        color=Gf.Vec3f(0.2, 0.25, 0.25),
+    ):
         """Create a ground plane in the USD stage."""
         # Parent xform (no transforms applied unless we hit fallback path)
         plane_path = omni.usd.get_stage_next_free_path(stage, plane_path, True)
@@ -163,7 +195,9 @@ class Utils:
 
             # Simple visual mesh (optional) to see the plane
             geom_plane_path = plane_path + "/CollisionMesh"
-            entity_plane = Utils.create_mesh_square_axis(stage, geom_plane_path, axis, size)
+            entity_plane = Utils.create_mesh_square_axis(
+                stage, geom_plane_path, axis, size
+            )
             entity_plane.CreateDisplayColorAttr().Set([color])
 
             # Define physics plane (USD schema)
@@ -191,7 +225,9 @@ class Utils:
         return PurePath(path).parts[1:]
 
     @staticmethod
-    def ensure_xform_hierarchy_from_prim_path(stage: Usd.Stage, prim_path: str | Sdf.Path) -> UsdGeom.Xform:
+    def ensure_xform_hierarchy_from_prim_path(
+        stage: Usd.Stage, prim_path: str | Sdf.Path
+    ) -> UsdGeom.Xform:
         """
         Ensures that the parent path of the given prim_path exists in the stage.
         Expects Xform-only; raises ValueError if any prim exists at the path that is not an Xform.
@@ -207,7 +243,9 @@ class Utils:
         return Utils.ensure_xform_hierarchy(stage, ordered_prim_names)
 
     @staticmethod
-    def ensure_xform_hierarchy(stage: Usd.Stage, ordered_prim_names: tuple[str, ...]) -> UsdGeom.Xform:
+    def ensure_xform_hierarchy(
+        stage: Usd.Stage, ordered_prim_names: tuple[str, ...]
+    ) -> UsdGeom.Xform:
         """
         Ensures that the full xform hierarchy /a/b/.../{last} exists in the stage.
         Expects Xform-only; raises ValueError if any prim exists at the path that is not an Xform.
@@ -215,7 +253,9 @@ class Utils:
         """
         # perform sanity checks for the input, that ordered_prim_names is a tuple
         if not isinstance(ordered_prim_names, tuple):
-            raise ValueError(f"Input ordered prim names must be a tuple, got {type(ordered_prim_names)}")
+            raise ValueError(
+                f"Input ordered prim names must be a tuple, got {type(ordered_prim_names)}"
+            )
 
         if not ordered_prim_names:
             raise ValueError("Input ordered prim names cannot be empty")

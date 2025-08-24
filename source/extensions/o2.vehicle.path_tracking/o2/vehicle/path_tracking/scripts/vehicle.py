@@ -42,10 +42,18 @@ class Vehicle:
         self._stage = omni.usd.get_context().get_stage()
         self._rear_stearing = rear_steering
         self._wheel_prims = {
-            Wheel.FRONT_LEFT: self._stage.GetPrimAtPath(f"{self._path}/LeftWheel1References"),
-            Wheel.FRONT_RIGHT: self._stage.GetPrimAtPath(f"{self._path}/RightWheel1References"),
-            Wheel.REAR_LEFT: self._stage.GetPrimAtPath(f"{self._path}/LeftWheel2References"),
-            Wheel.REAR_RIGHT: self._stage.GetPrimAtPath(f"{self._path}/RightWheel2References"),
+            Wheel.FRONT_LEFT: self._stage.GetPrimAtPath(
+                f"{self._path}/LeftWheel1References"
+            ),
+            Wheel.FRONT_RIGHT: self._stage.GetPrimAtPath(
+                f"{self._path}/RightWheel1References"
+            ),
+            Wheel.REAR_LEFT: self._stage.GetPrimAtPath(
+                f"{self._path}/LeftWheel2References"
+            ),
+            Wheel.REAR_RIGHT: self._stage.GetPrimAtPath(
+                f"{self._path}/RightWheel2References"
+            ),
         }
         steering_wheels = [Wheel.FRONT_LEFT, Wheel.FRONT_RIGHT]
         non_steering_wheels = [Wheel.REAR_LEFT, Wheel.REAR_RIGHT]
@@ -53,7 +61,9 @@ class Vehicle:
             steering_wheels, non_steering_wheels = non_steering_wheels, steering_wheels
 
         for wheel_prim_key in steering_wheels:
-            self._set_max_steer_angle(self._wheel_prims[wheel_prim_key], max_steer_angle_radians)
+            self._set_max_steer_angle(
+                self._wheel_prims[wheel_prim_key], max_steer_angle_radians
+            )
 
         for wheel_prim_key in non_steering_wheels:
             self._set_max_steer_angle(self._wheel_prims[wheel_prim_key], 0.0)
@@ -132,8 +142,16 @@ class Vehicle:
         cache = UsdGeom.XformCache()
         T = cache.GetLocalToWorldTransform(self._vehicle())
         if axle_type == Axle.FRONT:
-            wheel_fl = self._wheel_prims[Wheel.FRONT_LEFT].GetAttribute("xformOp:translate").Get()
-            wheel_fr = self._wheel_prims[Wheel.FRONT_RIGHT].GetAttribute("xformOp:translate").Get()
+            wheel_fl = (
+                self._wheel_prims[Wheel.FRONT_LEFT]
+                .GetAttribute("xformOp:translate")
+                .Get()
+            )
+            wheel_fr = (
+                self._wheel_prims[Wheel.FRONT_RIGHT]
+                .GetAttribute("xformOp:translate")
+                .Get()
+            )
             wheel_fl[self.up_axis_index] = 0.0
             wheel_fr[self.up_axis_index] = 0.0
             wheel_fl = Gf.Vec4f(wheel_fl[0], wheel_fl[1], wheel_fl[2], 1.0) * T
@@ -145,8 +163,16 @@ class Vehicle:
             return (wheel_fl + wheel_fr) / 2
 
         if axle_type == Axle.REAR:
-            wheel_rl = self._wheel_prims[Wheel.REAR_LEFT].GetAttribute("xformOp:translate").Get()
-            wheel_rr = self._wheel_prims[Wheel.REAR_RIGHT].GetAttribute("xformOp:translate").Get()
+            wheel_rl = (
+                self._wheel_prims[Wheel.REAR_LEFT]
+                .GetAttribute("xformOp:translate")
+                .Get()
+            )
+            wheel_rr = (
+                self._wheel_prims[Wheel.REAR_RIGHT]
+                .GetAttribute("xformOp:translate")
+                .Get()
+            )
             wheel_rl[self.up_axis_index] = 0.0
             wheel_rr[self.up_axis_index] = 0.0
             wheel_rl = Gf.Vec4f(wheel_rl[0], wheel_rl[1], wheel_rl[2], 1.0) * T
@@ -161,7 +187,9 @@ class Vehicle:
 
     def _wheel_pos(self, wheel_type):
         R = self.rotation_matrix()
-        wheel_pos = self._wheel_prims[wheel_type].GetAttribute("xformOp:translate").Get()
+        wheel_pos = (
+            self._wheel_prims[wheel_type].GetAttribute("xformOp:translate").Get()
+        )
         wheel_pos = Gf.Vec4f(wheel_pos[0], wheel_pos[1], wheel_pos[2], 1.0) * R
         return Gf.Vec3f(wheel_pos[0], wheel_pos[1], wheel_pos[2]) + self.curr_position()
 
