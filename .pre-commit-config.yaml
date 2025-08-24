@@ -1,0 +1,12 @@
+exclude: ^(templates/.*|tools/.*|.vscode/.*|LICENSE|premake5\.lua|repo\.toml|PRODUCT_TERMS_OMNIVERSE)
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
